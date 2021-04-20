@@ -30,7 +30,7 @@ class Camera {
 		// FIXME this is only a stub -> fill in with correct code
 		return glm::quat();
 	}
-	void setViewportSize(int width, int height) {
+	void setViewportSize(float width, float height) {
 		// FIXME this is only a stub -> fill in with correct code
 	}
 	void setFocalPoint(const glm::vec3 &newFocalPoint) {

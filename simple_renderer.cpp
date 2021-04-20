@@ -11,11 +11,6 @@ simple_renderer &ref_simple_renderer(cgv::render::context &ctx, int ref_count_ch
 
 cgv::render::render_style *simple_renderer::create_render_style() const { return new simple_render_style(); }
 
-simple_render_style::simple_render_style() {
-	radius_scale = 1.0f;
-	radius = 1.0f;
-}
-
 bool simple_renderer::validate_attributes(const cgv::render::context &ctx) const {
 	const auto &strs = get_style<simple_render_style>();
 	return surface_renderer::validate_attributes(ctx);
@@ -41,18 +36,13 @@ bool simple_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().is_linked())
 		return false;
 
-	ref_prog().set_uniform(ctx, "radius_scale", strs.radius_scale);
-	ref_prog().set_uniform(ctx, "eye_pos", eye_pos);
-
 	return true;
 }
 
 bool simple_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }
 
 bool simple_render_style_reflect::self_reflect(cgv::reflect::reflection_handler &rh) {
-	return rh.reflect_base(*static_cast<simple_render_style *>(this)) && //
-		   rh.reflect_member("radius", radius) &&                        //
-		   rh.reflect_member("radius_scale", radius_scale);
+	return rh.reflect_base(*static_cast<simple_render_style *>(this));
 }
 
 void simple_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
@@ -75,11 +65,6 @@ struct simple_render_style_gui_creator : public cgv::gui::gui_creator {
 			return false;
 		auto *strs_ptr = reinterpret_cast<simple_render_style *>(value_ptr);
 		auto *b = dynamic_cast<cgv::base::base *>(p);
-
-		p->add_member_control(b, "default radius", strs_ptr->radius, "value_slider",
-							  "min=0.001;step=0.0001;max=10.0;log=true;ticks=true");
-		p->add_member_control(b, "radius scale", strs_ptr->radius_scale, "value_slider",
-							  "min=0.01;step=0.0001;max=100.0;log=true;ticks=true");
 
 		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
 		return true;

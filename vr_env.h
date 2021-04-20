@@ -14,10 +14,15 @@
 #include <cgv_gl/sphere_renderer.h>
 #include <cgv_gl/spline_tube_renderer.h>
 
+#include "landscape/Landscape.h"
+
 class vr_env : public cgv::base::node,
 			   public cgv::render::drawable,
 			   public cgv::gui::event_handler,
 			   public cgv::gui::provider {
+  private:
+	Landscape landscape = {};
+
   public:
 	vr_env();
 
@@ -28,5 +33,6 @@ class vr_env : public cgv::base::node,
 	void init_frame(cgv::render::context &ctx) override;
 	void draw(cgv::render::context &ctx) override;
 	void finish_draw(cgv::render::context &ctx) override;
+	std::string get_type_name() const override;
 	void create_gui() override;
 };

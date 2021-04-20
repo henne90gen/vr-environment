@@ -10,7 +10,10 @@ add_subdirectory(image)
 
 add_library(vr_env
         vr_env.cpp
+
         simple_renderer.cpp
+        deferred_renderer.cpp
+
         landscape/Branch.cpp
         landscape/Clouds.cpp
         landscape/Landscape.cpp

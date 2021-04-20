@@ -6,16 +6,15 @@
 #include <cmath>
 #include <random>
 
-DEFINE_SHADER(landscape_NoiseLib)
-DEFINE_SHADER(landscape_ScatterLib)
-
-DEFINE_DEFAULT_SHADERS(landscape_FlatColor)
-DEFINE_DEFAULT_SHADERS(landscape_Texture)
-
-DEFINE_VERTEX_SHADER(landscape_ScreenQuad)
-DEFINE_FRAGMENT_SHADER(landscape_Lighting)
-DEFINE_FRAGMENT_SHADER(landscape_SSAO)
-DEFINE_FRAGMENT_SHADER(landscape_SSAOBlur)
+// FIXME shader
+//  DEFINE_SHADER(landscape_NoiseLib)
+//  DEFINE_SHADER(landscape_ScatterLib)
+//  DEFINE_DEFAULT_SHADERS(landscape_FlatColor)
+//  DEFINE_DEFAULT_SHADERS(landscape_Texture)
+//  DEFINE_VERTEX_SHADER(landscape_ScreenQuad)
+//  DEFINE_FRAGMENT_SHADER(landscape_Lighting)
+//  DEFINE_FRAGMENT_SHADER(landscape_SSAO)
+//  DEFINE_FRAGMENT_SHADER(landscape_SSAOBlur)
 
 float lerp(float a, float b, float f) { return a + f * (b - a); }
 
@@ -35,14 +34,14 @@ void Landscape::setup() {
 	quadVA = createQuadVA(textureShader);
 	cubeVA = createCubeVA(flatShader);
 
-	sky.init();
-	trees.init();
-	terrain.init();
+	//	sky.init();
+	//	trees.init();
+	//	terrain.init();
 
 	initGBuffer();
-	initSSAOBuffer();
-	initSSAOBlurBuffer();
-	initKernelAndNoiseTexture();
+	//	initSSAOBuffer();
+	//	initSSAOBlurBuffer();
+	//	initKernelAndNoiseTexture();
 }
 
 void Landscape::destroy() {}
@@ -141,8 +140,8 @@ void Landscape::tick() {
 	switch (thingToRender) {
 	case 0:
 		renderTerrain(camera, light, shaderToggles);
-		renderSSAO();
-		renderSSAOBlur();
+		//		renderSSAO();
+		//		renderSSAOBlur();
 		renderGBufferToQuad(camera, light, shaderToggles);
 		break;
 	case 1:
@@ -162,16 +161,14 @@ void Landscape::tick() {
 void Landscape::renderTerrain(const Camera &camera, const Light &light, const ShaderToggles &shaderToggles) {
 	GL_Call(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
 	GL_Call(glClearColor(0.0, 0.0, 0.0, 1.0));
-	//    GL_Call(glClearColor(1.0, 1.0, 1.0, 1.0));
-	//    GL_Call(glClearColor(0.529F, 0.808F, 0.922F, 1.0));
 	GL_Call(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	renderLight(camera.getProjectionMatrix(), camera.getViewMatrix(), light);
 
-	terrain.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles);
-	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
+	//	terrain.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles);
+	//	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
 
-	renderSky(camera.getProjectionMatrix(), camera.getViewMatrix());
+	//	renderSky(camera.getProjectionMatrix(), camera.getViewMatrix());
 }
 
 void Landscape::renderSSAO() {
@@ -435,7 +432,7 @@ void Landscape::initGBuffer() {
 	GL_Call(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
 	GL_Call(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer));
 
-	checkFramebufferStatus();
+	validate_framebuffer();
 }
 
 void Landscape::initSSAOBuffer() {
@@ -453,7 +450,7 @@ void Landscape::initSSAOBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0));
 
-	checkFramebufferStatus();
+	validate_framebuffer();
 }
 
 void Landscape::initSSAOBlurBuffer() {
@@ -471,7 +468,7 @@ void Landscape::initSSAOBlurBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBlurBuffer, 0));
 
-	checkFramebufferStatus();
+	validate_framebuffer();
 }
 
 void Landscape::initKernelAndNoiseTexture() {

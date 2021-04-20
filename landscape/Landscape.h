@@ -91,11 +91,11 @@ class Landscape {
 	}
 	unsigned int getWidth() const {
 		// FIXME this is only a stub -> fill in with correct code
-		return 0.0F;
+		return 0;
 	}
 	unsigned int getHeight() const {
 		// FIXME this is only a stub -> fill in with correct code
-		return 0.0F;
+		return 0;
 	}
 	double getLastFrameTime() const {
 		// FIXME this is only a stub -> fill in with correct code
