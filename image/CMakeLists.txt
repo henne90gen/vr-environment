@@ -1,4 +1,4 @@
-add_library(image ImageOps.cpp)
+add_library(image STATIC ImageOps.cpp)
 
 set_target_properties(image PROPERTIES
         CXX_STANDARD 17
@@ -6,9 +6,9 @@ set_target_properties(image PROPERTIES
 
 target_link_libraries(image
         opengl
-        ${LIBPNG_LIBRARY}
-        ${LIBJPEG_LIBRARY}
-        ${ZLIB_LIBRARY})
+        png
+        jpeg
+        zlib)
 
 target_include_directories(image PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}

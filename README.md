@@ -9,7 +9,7 @@ following as program arguments:
 plugin:cg_fltk
 plugin:crg_stereo_view
 plugin:crg_grid
-"type(shader_config):shader_path='../../vendor/cgv/libs/cgv_gl/glsl'"
+"type(shader_config):shader_path='../../glgl;../../vendor/cgv/libs/cgv_gl/glsl'"
 plugin:vr_env
 ```
 

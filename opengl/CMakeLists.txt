@@ -1,4 +1,4 @@
-add_library(opengl
+add_library(opengl STATIC
         gl/BufferLayout.cpp
         gl/BufferLayoutElement.cpp
         gl/IndexBuffer.cpp
@@ -14,9 +14,7 @@ set_target_properties(opengl PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(opengl
-        glm
-        glew)
+target_link_libraries(opengl glew glm)
 
 target_include_directories(opengl PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
