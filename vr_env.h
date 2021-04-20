@@ -15,18 +15,18 @@
 #include <cgv_gl/spline_tube_renderer.h>
 
 class vr_env : public cgv::base::node,
-               public cgv::render::drawable,
-               public cgv::gui::event_handler,
-               public cgv::gui::provider {
+			   public cgv::render::drawable,
+			   public cgv::gui::event_handler,
+			   public cgv::gui::provider {
   public:
-    vr_env();
+	vr_env();
 
-    void stream_help(std::ostream &os) override;
-    bool handle(cgv::gui::event &e) override;
-    bool init(cgv::render::context &ctx) override;
-    void clear(cgv::render::context &ctx) override;
-    void init_frame(cgv::render::context &ctx) override;
-    void draw(cgv::render::context &ctx) override;
-    void finish_draw(cgv::render::context &ctx) override;
-    void create_gui() override;
+	void stream_help(std::ostream &os) override;
+	bool handle(cgv::gui::event &e) override;
+	bool init(cgv::render::context &ctx) override;
+	void clear(cgv::render::context &ctx) override;
+	void init_frame(cgv::render::context &ctx) override;
+	void draw(cgv::render::context &ctx) override;
+	void finish_draw(cgv::render::context &ctx) override;
+	void create_gui() override;
 };
