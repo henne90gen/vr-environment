@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Gl/glew.h>
+#include <GL/glew.h>
 #include <glm/ext.hpp>
 
 #include "util/AssertUtils.h"

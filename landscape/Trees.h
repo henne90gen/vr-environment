@@ -2,9 +2,13 @@
 
 #define USE_TREE_MODELS 0
 
+#if USE_TREE_MODELS
 #include <Model.h>
+#endif
+
 #include <gl/Shader.h>
 #include <gl/VertexArray.h>
+
 #include <memory>
 
 #include "Branch.h"
