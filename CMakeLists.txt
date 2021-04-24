@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(VREnvironment)
 
-add_subdirectory(vendor/cgv)
+add_subdirectory(${CGV_DIR} ${CMAKE_BINARY_DIR}/cgv)
 add_subdirectory(vendor/glm)
 
 add_subdirectory(opengl)

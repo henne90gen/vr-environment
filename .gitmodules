@@ -1,6 +1,3 @@
-[submodule "vendor/cgv"]
-	path = vendor/cgv
-	url = git@github.com:henne90gen/cgv.git
 [submodule "vendor/glm"]
 	path = vendor/glm
 	url = git@github.com:g-truc/glm.git
