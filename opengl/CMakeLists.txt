@@ -1,4 +1,4 @@
-add_library(opengl STATIC
+add_library(opengl
         gl/BufferLayout.cpp
         gl/BufferLayoutElement.cpp
         gl/IndexBuffer.cpp

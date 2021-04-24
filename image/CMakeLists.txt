@@ -1,4 +1,4 @@
-add_library(image STATIC ImageOps.cpp)
+add_library(image ImageOps.cpp)
 
 set_target_properties(image PROPERTIES
         CXX_STANDARD 17

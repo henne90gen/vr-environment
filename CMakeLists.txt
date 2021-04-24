@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(VREnvironment)
 
+set(BUILD_SHARED_LIBS ON)
+
 add_subdirectory(${CGV_DIR} ${CMAKE_BINARY_DIR}/cgv)
 add_subdirectory(vendor/glm)
 
