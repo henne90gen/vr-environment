@@ -8,13 +8,9 @@
 #include <cgv/render/shader_program.h>
 #include <cgv_gl/gl/mesh_render_info.h>
 
-#include <cgv_gl/arrow_renderer.h>
-#include <cgv_gl/box_renderer.h>
-#include <cgv_gl/rounded_cone_renderer.h>
-#include <cgv_gl/sphere_renderer.h>
-#include <cgv_gl/spline_tube_renderer.h>
-
 #include "landscape/Landscape.h"
+#include "renderers/deferred_renderer.h"
+#include "renderers/flat_color_renderer.h"
 
 class vr_env : public cgv::base::node,
 			   public cgv::render::drawable,
@@ -22,19 +18,22 @@ class vr_env : public cgv::base::node,
 			   public cgv::gui::provider {
   private:
 	Landscape landscape = {};
-    std::vector<vec3> positions = {
-          {0.0, 0.0, 0.0},
-          {1.0, 0.0, 0.0},
-          {1.0, 1.0, 0.0},
-          {0.0, 1.0, 0.0},
-    };
-    std::vector<vec2> texcoords = {
-          {0.0, 1.0},
-          {1.0, 1.0},
-          {1.0, 0.0},
-          {0.0, 0.0},
-    };
-    std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+	std::vector<vec3> positions = {
+		  {0.0, 0.0, 0.0},
+		  {1.0, 0.0, 0.0},
+		  {1.0, 1.0, 0.0},
+		  {0.0, 1.0, 0.0},
+	};
+	std::vector<vec2> texcoords = {
+		  {0.0, 1.0},
+		  {1.0, 1.0},
+		  {1.0, 0.0},
+		  {0.0, 0.0},
+	};
+	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+
+	deferred_render_style deferred_style;
+	flat_color_render_style flat_color_style;
 
   public:
 	vr_env();
@@ -48,4 +47,5 @@ class vr_env : public cgv::base::node,
 	void finish_draw(cgv::render::context &ctx) override;
 	std::string get_type_name() const override;
 	void create_gui() override;
+	void on_set(void *member_ptr) override;
 };

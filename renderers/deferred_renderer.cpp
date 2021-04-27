@@ -196,8 +196,9 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 				const std::string &gui_type, const std::string &options, bool *) override {
 		if (value_type != cgv::type::info::type_name<deferred_render_style>::get_name())
 			return false;
-		auto *strs_ptr = reinterpret_cast<deferred_render_style *>(value_ptr);
-		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
+		auto *style = reinterpret_cast<deferred_render_style *>(value_ptr);
+		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(style));
+		p->add_control("Show Albedo", style->show_albedo);
 		return true;
 	}
 };

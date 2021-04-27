@@ -14,6 +14,10 @@ extern deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int r
 struct deferred_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	deferred_render_style() = default;
+
+    bool show_position = false;
+    bool show_normal = false;
+    bool show_albedo = false;
 };
 
 /// renderer that supports point splatting

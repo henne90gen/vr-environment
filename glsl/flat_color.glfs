@@ -12,16 +12,15 @@ mat3 get_inverse_normal_matrix();
 
 in vec3 position_fs;
 in vec3 normal_fs;
-in vec2 texcoord_fs;
 
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedo;
 
-uniform sampler2D tex;
+uniform vec3 flat_color;
 
 void main() {
     gPosition = position_fs;
     gNormal = normalize(get_normal_matrix() * normal_fs);
-    gAlbedo = texture(tex, texcoord_fs).rgb;
+    gAlbedo = flat_color;
 }

@@ -6,9 +6,8 @@
 #include <memory>
 
 #include "Branch.h"
-#include "Layers.h"
-#include "ShaderToggles.h"
-#include "TerrainParams.h"
+#include "landscape/ShaderToggles.h"
+#include "landscape/TerrainParams.h"
 
 class Trees {
 	std::shared_ptr<Shader> shader = nullptr;

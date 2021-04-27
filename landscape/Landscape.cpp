@@ -166,7 +166,7 @@ void Landscape::renderTerrain(const Camera &camera, const Light &light, const Sh
 	renderLight(camera.getProjectionMatrix(), camera.getViewMatrix(), light);
 
 	terrain.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles);
-	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
+//	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
 
 	static float animationTime = 0.0F;
 	animationTime += static_cast<float>(getLastFrameTime());

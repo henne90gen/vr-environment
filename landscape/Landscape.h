@@ -11,7 +11,6 @@
 #include "Layers.h"
 #include "ShaderToggles.h"
 #include "Terrain.h"
-#include "Trees.h"
 
 struct Light {
 	glm::vec3 fragmentToLightDir = glm::vec3(0.0F, 1.0F, 0.0F);
@@ -63,7 +62,7 @@ class Landscape {
 
 	Camera playerCamera = {};
 	Clouds sky = {};
-	Trees trees = {};
+//	Trees trees = {};
 	Terrain terrain = {};
 	glm::vec3 atmosphere = glm::vec3(0.4F, 0.45F, 1.2F);
 

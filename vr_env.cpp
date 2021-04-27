@@ -1,8 +1,5 @@
 #include "vr_env.h"
 
-#include "renderers/deferred_renderer.h"
-#include "renderers/simple_renderer.h"
-
 vr_env::vr_env() { set_name("vr_env"); }
 
 void vr_env::stream_help(std::ostream &os) {
@@ -15,7 +12,7 @@ bool vr_env::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	auto &simple = ref_simple_renderer(ctx, 1);
+	auto &simple = ref_flat_color_renderer(ctx, 1);
 	if (!simple.init(ctx)) {
 		return false;
 	}
@@ -24,7 +21,7 @@ bool vr_env::init(cgv::render::context &ctx) {
 }
 
 void vr_env::clear(cgv::render::context &ctx) {
-	ref_simple_renderer(ctx, -1);
+	ref_flat_color_renderer(ctx, -1);
 	ref_deferred_renderer(ctx, -1);
 }
 
@@ -32,34 +29,47 @@ void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); 
 
 void vr_env::draw(cgv::render::context &ctx) {
 	auto &deferred = ref_deferred_renderer(ctx);
-
+	deferred.set_render_style(deferred_style);
 	deferred.render(ctx, [&]() {
-		auto &simple = ref_simple_renderer(ctx);
+		//	renderTrees();
 
-		auto tex = cgv::render::texture("uint8[R,G,B,A]", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
-		const std::string fileName = "../../texture_test.bmp";
-		if (!tex.create_from_image(ctx, fileName)) {
-			std::cerr << "failed to create texture from image: " << tex.last_error << std::endl;
-			return;
-		}
-		if (!tex.enable(ctx, 0)) {
-			return;
-		}
-		simple.ref_prog().set_uniform(ctx, "tex", 0);
-
-		simple.set_position_array(ctx, positions);
-		simple.set_texcoord_array(ctx, texcoords);
-		simple.set_indices(ctx, indices);
-		simple.render(ctx, 0, indices.size());
+		auto &flat_color = ref_flat_color_renderer(ctx);
+		flat_color.set_render_style(flat_color_style);
+		flat_color.set_position_array(ctx, positions);
+		flat_color.set_indices(ctx, indices);
+		flat_color.render(ctx, 0, indices.size());
 	});
 }
 
 void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx); }
 
-void vr_env::create_gui() {}
+void vr_env::create_gui() {
+	add_decorator("VR Environment", "heading", "level=2");
+
+	if (begin_tree_node("deferred style", deferred_style)) {
+		align("\a");
+		add_gui("deferred style", deferred_style);
+		align("\b");
+		end_tree_node(deferred_style);
+	}
+
+	if (begin_tree_node("flat color style", flat_color_style)) {
+		align("\a");
+		add_gui("flat color style", flat_color_style);
+		align("\b");
+		end_tree_node(flat_color_style);
+	}
+}
 
 bool vr_env::handle(cgv::gui::event &e) { return false; }
 
 std::string vr_env::get_type_name() const { return "vr_env"; }
+
+void vr_env::on_set(void *member_ptr) {
+	// NOTE: on_set is called every time something in the gui changes, thus we have to post a redraw event to make
+	// sure any changes to the render styles ar being applied
+	update_member(member_ptr);
+	post_redraw();
+}
 
 cgv::base::object_registration<vr_env> vr_env_reg("vr_env"); // NOLINT(cert-err58-cpp)

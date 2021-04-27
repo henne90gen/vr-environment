@@ -2,20 +2,32 @@
 
 in vec2 texcoord_fs;
 
+out vec4 color;
+
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 
-out vec4 color;
+uniform bool show_position = false;
+uniform bool show_normal = false;
+uniform bool show_albedo = false;
 
 void main() {
+    if (show_position) {
+        color = texture(gPosition, texcoord_fs);
+        return;
+    }
+    if (show_normal) {
+        color = texture(gNormal, texcoord_fs);
+        return;
+    }
+    if (show_albedo) {
+        color = texture(gAlbedo, texcoord_fs);
+        return;
+    }
+
     color = texture(gAlbedo, texcoord_fs);
     //    vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
     //    vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
     //    vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
-    //    color = vec4(1.0F, 1.0F, 0.5F, 1.0F);
-    //    color = vec4(FragPos, 1.0F);
-    //    color = vec4(Normal, 1.0F);
-    //    color = vec4(Diffuse, 1.0F);
-    //    color = vec4(TexCoord, 0.0F, 1.0F);
 }
