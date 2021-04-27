@@ -3,8 +3,6 @@
 #include <cgv/render/frame_buffer.h>
 #include <cgv_gl/surface_renderer.h>
 
-#define USE_TEST_TEXTURE 0
-
 class deferred_renderer;
 
 //! reference to a singleton spline tube renderer that is shared among drawables
@@ -36,10 +34,6 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
   public:
-#if USE_TEST_TEXTURE
-	cgv::render::texture testTexture;
-#endif
-
 	cgv::render::frame_buffer gBuffer;
 	cgv::render::texture gPosition;
 	cgv::render::texture gNormal;

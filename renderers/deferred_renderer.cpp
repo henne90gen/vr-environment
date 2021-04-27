@@ -29,15 +29,6 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-#if USE_TEST_TEXTURE
-	testTexture = cgv::render::texture("uint8[R,G,B,A]", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
-	const std::string fileName = "../../texture_test.bmp";
-	if (!testTexture.create_from_image(ctx, fileName)) {
-		std::cerr << "failed to create texture from image: " << testTexture.last_error << std::endl;
-		return false;
-	}
-#endif
-
 	gBuffer = cgv::render::frame_buffer();
 	if (!gBuffer.create(ctx)) {
 		std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
@@ -157,12 +148,6 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().set_uniform(ctx, "gAlbedo", 2)) {
 		return false;
 	}
-
-#if USE_TEST_TEXTURE
-	if (!testTexture.enable(ctx, 0)) {
-		return false;
-	}
-#endif
 
 	return true;
 }
