@@ -1,7 +1,7 @@
 #include "vr_env.h"
 
-#include "deferred_renderer.h"
-#include "simple_renderer.h"
+#include "renderers/deferred_renderer.h"
+#include "renderers/simple_renderer.h"
 
 vr_env::vr_env() { set_name("vr_env"); }
 
