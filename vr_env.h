@@ -8,7 +8,9 @@
 #include <cgv/render/shader_program.h>
 #include <cgv_gl/gl/mesh_render_info.h>
 
+#include "Trees.h"
 #include "landscape/Landscape.h"
+
 #include "renderers/deferred_renderer.h"
 #include "renderers/flat_color_renderer.h"
 
@@ -17,7 +19,6 @@ class vr_env : public cgv::base::node,
 			   public cgv::gui::event_handler,
 			   public cgv::gui::provider {
   private:
-	Landscape landscape = {};
 	std::vector<vec3> positions = {
 		  {0.0, 0.0, 0.0},
 		  {1.0, 0.0, 0.0},
@@ -34,6 +35,8 @@ class vr_env : public cgv::base::node,
 
 	deferred_render_style deferred_style;
 	flat_color_render_style flat_color_style;
+
+	Trees trees = {};
 
   public:
 	vr_env();

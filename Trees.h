@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cgv/render/context.h>
+#include <cgv/render/render_types.h>
+
 #include <gl/Shader.h>
 #include <gl/VertexArray.h>
 
@@ -9,9 +12,14 @@
 #include "landscape/ShaderToggles.h"
 #include "landscape/TerrainParams.h"
 
-class Trees {
+class Trees : public cgv::render::render_types {
+  public:
+	bool enabled = true;
+	bool showCubes = false;
+	bool showGrid = true;
+
+  private:
 	std::shared_ptr<Shader> shader = nullptr;
-	std::shared_ptr<Shader> flatColorShader = nullptr;
 
 	std::shared_ptr<Shader> compShader = nullptr;
 	unsigned int treePositionTextureWidth = 32;
@@ -29,34 +37,25 @@ class Trees {
 	float treeScale = 0.15F;
 	TreeSettings treeSettings = {};
 
-	std::shared_ptr<VertexArray> gridVA = nullptr;
 	float gridHeight = 120.0F;
-
-	// TODO add these two toggles to the UI
-	bool showTrees = true;
-	bool showGrid = false;
-	bool usingGeneratedTrees = true;
 
   public:
 	[[nodiscard]] unsigned int getTreePositionTextureId() const { return treePositionTextureId; }
 
-	void init();
-	void showGui();
+	bool init(cgv::render::context &ctx);
+	void clear(cgv::render::context &ctx);
 
-	void render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const ShaderToggles &shaderToggles,
-				const TerrainParams &terrainParams);
+	void render(cgv::render::context &ctx, const ShaderToggles &shaderToggles, const TerrainParams &terrainParams);
 
   private:
 	void initComputeShader();
 	void initModel();
 	void initGrid();
 
-	void renderComputeShader(const TerrainParams &terrainParams);
-	void renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-					 const ShaderToggles &shaderToggles);
-	void renderGrid(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
-	void renderTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-					 const ShaderToggles &shaderToggles);
+	void renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams);
+	void renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles);
+	void renderGrid(cgv::render::context &ctx);
+	void renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderToggles);
 
-	void generateTrees();
+	void generateTree();
 };

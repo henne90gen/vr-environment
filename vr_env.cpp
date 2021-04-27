@@ -1,5 +1,7 @@
 #include "vr_env.h"
 
+#include <cgv_gl/box_renderer.h>
+
 vr_env::vr_env() { set_name("vr_env"); }
 
 void vr_env::stream_help(std::ostream &os) {
@@ -17,12 +19,17 @@ bool vr_env::init(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!trees.init(ctx)) {
+		return false;
+	}
+
 	return true;
 }
 
 void vr_env::clear(cgv::render::context &ctx) {
 	ref_flat_color_renderer(ctx, -1);
 	ref_deferred_renderer(ctx, -1);
+	trees.clear(ctx);
 }
 
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
@@ -31,7 +38,9 @@ void vr_env::draw(cgv::render::context &ctx) {
 	auto &deferred = ref_deferred_renderer(ctx);
 	deferred.set_render_style(deferred_style);
 	deferred.render(ctx, [&]() {
-		//	renderTrees();
+		ShaderToggles shaderToggles = {};
+		TerrainParams terrainParams = {};
+		trees.render(ctx, shaderToggles, terrainParams);
 
 		auto &flat_color = ref_flat_color_renderer(ctx);
 		flat_color.set_render_style(flat_color_style);
@@ -58,6 +67,13 @@ void vr_env::create_gui() {
 		add_gui("flat color style", flat_color_style);
 		align("\b");
 		end_tree_node(flat_color_style);
+	}
+
+	if (begin_tree_node("trees", trees)) {
+		align("\a");
+		add_gui("Trees", trees);
+		align("\b");
+		end_tree_node(trees);
 	}
 }
 

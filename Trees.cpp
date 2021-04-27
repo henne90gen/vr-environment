@@ -7,6 +7,8 @@
 #include <ImageOps.h>
 #include <util/RenderUtils.h>
 
+#include <cgv_gl/box_wire_renderer.h>
+
 // FIXME shader
 //  DEFINE_DEFAULT_SHADERS(landscape_Tree)
 //  DEFINE_DEFAULT_SHADERS(landscape_Texture)
@@ -14,11 +16,14 @@
 //  DEFINE_SHADER(landscape_NoiseLib)
 //  DEFINE_SHADER(landscape_TreeComp)
 
-void Trees::init() {
-	// FIXME shader
-	//  shader = CREATE_DEFAULT_SHADER(landscape_Tree);
-	//  shader->attachShaderLib(SHADER_CODE(landscape_NoiseLib));
+bool Trees::init(cgv::render::context &ctx) {
+	auto &box_wire = ref_box_wire_renderer(ctx, 1);
+	if (!box_wire.init(ctx)) {
+		return false;
+	}
 
+	// FIXME finish init code
+#if 0
 	initComputeShader();
 
 	initModel();
@@ -30,35 +35,24 @@ void Trees::init() {
 	if (ImageOps::load("./landscape_resources/assets/textures/bark_and_leafs_light.png", img)) {
 		img.applyToTexture(barkTexture);
 	}
-}
-
-void Trees::showGui() {
-// FIXME imgui
-#if 0
-    ImGui::DragInt("Tree Count", &treeCount);
-    ImGui::DragFloat("LOD Size", &lodSize);
-    ImGui::DragFloat("LOD Inner Size", &lodInnerSize);
-    ImGui::DragFloat("Grid Height", &gridHeight);
-    ImGui::DragFloat("Global Tree Scale", &treeScale, 0.001F);
-    treeSettings.showGui();
 #endif
 }
 
-void Trees::render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const ShaderToggles &shaderToggles,
-				   const TerrainParams &terrainParams) {
-	if (!showTrees) {
+void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles, const TerrainParams &terrainParams) {
+	if (!enabled) {
 		return;
 	}
 
 	// TODO(henne): compute shader execution can be moved into init
-	renderComputeShader(terrainParams);
+	//	FIXME renderComputeShader(ctx, terrainParams);
 
-	if (usingGeneratedTrees) {
-		generateTrees();
-		renderTrees(projectionMatrix, viewMatrix, shaderToggles);
+	renderGrid(ctx);
+
+	if (showCubes) {
+		renderCubes(ctx, shaderToggles);
 	} else {
-		renderCubes(projectionMatrix, viewMatrix, shaderToggles);
-		renderGrid(projectionMatrix, viewMatrix);
+		generateTree();
+		renderTrees(ctx, shaderToggles);
 	}
 }
 
@@ -80,7 +74,7 @@ void Trees::initComputeShader() {
 	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
 }
 
-void Trees::renderComputeShader(const TerrainParams &terrainParams) {
+void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams) {
 	compShader->bind();
 	compShader->setUniform("treeCount", treeCount);
 	compShader->setUniform("lodSize", lodSize);
@@ -92,73 +86,51 @@ void Trees::renderComputeShader(const TerrainParams &terrainParams) {
 }
 
 void Trees::initGrid() {
-	// FIXME shader
-	//  flatColorShader = CREATE_DEFAULT_SHADER(landscape_FlatColor);
-	gridVA = std::make_shared<VertexArray>(flatColorShader);
-	std::vector<glm::vec3> vertices = {};
-	vertices.emplace_back(0.0F, 0.0F, 0.0F);
-	vertices.emplace_back(1.0F, 0.0F, 0.0F);
-	vertices.emplace_back(1.0F, 0.0F, 1.0F);
-	vertices.emplace_back(0.0F, 0.0F, 1.0F);
-
-	BufferLayout layout = {{ShaderDataType::Float3, "a_Position"}};
-	auto vertexBuffer = std::make_shared<VertexBuffer>(vertices, layout);
-	gridVA->addVertexBuffer(vertexBuffer);
-
-	std::vector<unsigned int> indices = {};
-	indices.emplace_back(0);
-	indices.emplace_back(1);
-	indices.emplace_back(1);
-	indices.emplace_back(2);
-	indices.emplace_back(2);
-	indices.emplace_back(3);
-	indices.emplace_back(3);
-	indices.emplace_back(0);
-	auto indexBuffer = std::make_shared<IndexBuffer>(indices);
-	gridVA->setIndexBuffer(indexBuffer);
+	// FIXME initialize grid boxes here
 }
 
-void Trees::renderGrid(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) {
+void Trees::renderGrid(cgv::render::context &ctx) {
 	if (!showGrid) {
 		return;
 	}
-
-	gridVA->bind();
-	flatColorShader->bind();
-	flatColorShader->setUniform("viewMatrix", viewMatrix);
-	flatColorShader->setUniform("projectionMatrix", projectionMatrix);
-	flatColorShader->setUniform("flatColor", glm::vec3(1.0F));
 
 	const float lodH = lodSize / 2.0F;
 	const float lodIH = lodInnerSize / 2.0F;
 	const float smallSideLength = (lodSize - lodInnerSize) / 2.0F;
 	std::vector<glm::vec4> gridOffsets = {
-		  {lodInnerSize / -2.0F, lodInnerSize / -2.0F, lodInnerSize, lodInnerSize},
+		  {-lodIH, -lodIH, lodInnerSize, lodInnerSize},
 
-		  {-lodH, lodIH, smallSideLength, smallSideLength},
-		  {-lodIH, lodIH, lodInnerSize, smallSideLength},
+		  {-lodH, lodIH, smallSideLength, smallSideLength}, {-lodIH, lodIH, lodInnerSize, smallSideLength},
 		  {lodIH, lodIH, smallSideLength, smallSideLength},
 
-		  {-lodH, -lodIH, smallSideLength, lodInnerSize},
-		  {lodIH, -lodIH, smallSideLength, lodInnerSize},
+		  {-lodH, -lodIH, smallSideLength, lodInnerSize},   {lodIH, -lodIH, smallSideLength, lodInnerSize},
 
-		  {-lodH, -lodH, smallSideLength, smallSideLength},
-		  {-lodIH, -lodH, lodInnerSize, smallSideLength},
+		  {-lodH, -lodH, smallSideLength, smallSideLength}, {-lodIH, -lodH, lodInnerSize, smallSideLength},
 		  {lodIH, -lodH, smallSideLength, smallSideLength},
 	};
+	auto boxes = std::vector<box3>();
 	for (const auto &gridOffset : gridOffsets) {
-		auto modelMatrix = glm::identity<glm::mat4>();
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(gridOffset.x, gridHeight, gridOffset.y));
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(gridOffset.z, 1.0F, gridOffset.w));
-		flatColorShader->setUniform("modelMatrix", modelMatrix);
-		GL_Call(glDrawElements(GL_LINES, gridVA->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr));
+		//		auto modelMatrix = glm::identity<glm::mat4>();
+		//		modelMatrix = glm::translate(modelMatrix, glm::vec3(gridOffset.x, gridHeight, gridOffset.y));
+		//		modelMatrix = glm::scale(modelMatrix, glm::vec3(gridOffset.z, 1.0F, gridOffset.w));
+		boxes.emplace_back(                                                              //
+			  vec3(gridOffset.x, gridHeight, gridOffset.y),                              //
+			  vec3(gridOffset.x + gridOffset.z, gridHeight, gridOffset.y + gridOffset.w) //
+		);
 	}
+
+	auto &box_wire = cgv::render::ref_box_wire_renderer(ctx);
+	box_wire.set_box_array(ctx, boxes);
+	//    box_wire.set_render_style(box_rstyle);
+	box_wire.render(ctx, 0, boxes.size());
 }
 
 void Trees::initModel() { cubeVA = createCubeVA(shader); }
 
-void Trees::renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-						const ShaderToggles &shaderToggles) {
+void Trees::renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
+	// FIXME use box_renderer here
+
+#if 0
 	cubeVA->bind();
 	shader->bind();
 	cubeVA->setShader(shader);
@@ -182,6 +154,7 @@ void Trees::renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &view
 	if (shaderToggles.drawWireframe) {
 		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
+#endif
 }
 
 void appendLeaf(int positionOffset, int indexOffset, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals,
@@ -247,25 +220,12 @@ void appendSphereLeaf(const glm::mat4 modelMatrix, std::vector<glm::vec3> &posit
 	}
 }
 
-void Trees::generateTrees() {
-	if (generatedTreesVA != nullptr) {
-		for (auto &vb : generatedTreesVA->getVertexBuffers()) {
-			const unsigned int glid = vb->getGLID();
-			GL_Call(glDeleteBuffers(1, &glid));
-		}
-		generatedTreesVA->getVertexBuffers().clear();
-
-		const unsigned int glid = generatedTreesVA->getIndexBuffer()->getGLID();
-		GL_Call(glDeleteBuffers(1, &glid));
-		generatedTreesVA->getIndexBuffer() = nullptr;
-	} else {
-		generatedTreesVA = std::make_shared<VertexArray>(shader);
-	}
-
+void Trees::generateTree() {
 	std::vector<glm::vec3> positions = {};
 	std::vector<glm::vec3> normals = {};
 	std::vector<glm::vec2> uvs = {};
 	std::vector<glm::ivec3> indices = {};
+
 	Tree *tree = Tree::create(treeSettings);
 	tree->construct(positions, normals, uvs, indices);
 
@@ -325,14 +285,16 @@ void Trees::generateTrees() {
 		  {ShaderDataType::Float2, "a_UV"},
 	};
 	auto vertexBuffer = std::make_shared<VertexBuffer>(vertexData, layout);
-	generatedTreesVA->addVertexBuffer(vertexBuffer);
+	// FIXME generatedTreesVA->addVertexBuffer(vertexBuffer);
 
 	auto indexBuffer = std::make_shared<IndexBuffer>(indices);
-	generatedTreesVA->setIndexBuffer(indexBuffer);
+	// FIXME generatedTreesVA->setIndexBuffer(indexBuffer);
 }
 
-void Trees::renderTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-								 const ShaderToggles &shaderToggles) {
+void Trees::renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
+	// FIXME use custom renderer here
+
+#if 0
 	generatedTreesVA->bind();
 	shader->bind();
 	generatedTreesVA->setShader(shader);
@@ -367,4 +329,26 @@ void Trees::renderTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &view
 	if (shaderToggles.drawWireframe) {
 		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
+#endif
 }
+
+void Trees::clear(cgv::render::context &ctx) { ref_box_wire_renderer(ctx, -1); }
+
+#include <cgv/gui/provider.h>
+
+struct trees_gui_creator : public cgv::gui::gui_creator {
+	/// attempt to create a gui and return whether this was successful
+	bool create(cgv::gui::provider *p, const std::string &label, void *value_ptr, const std::string &value_type,
+				const std::string &gui_type, const std::string &options, bool *) override {
+		if (value_type != cgv::type::info::type_name<Trees>::get_name())
+			return false;
+		auto *trees_ptr = reinterpret_cast<Trees *>(value_ptr);
+		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(b, "Enabled", trees_ptr->enabled);
+		p->add_member_control(b, "Show Placement Grid", trees_ptr->showGrid);
+		p->add_member_control(b, "Show Cubes instead of Trees", trees_ptr->showCubes);
+		return true;
+	}
+};
+
+cgv::gui::gui_creator_registration<trees_gui_creator> trees_gc_reg("trees_gui_creator");
