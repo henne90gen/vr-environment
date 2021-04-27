@@ -165,10 +165,12 @@ void Landscape::renderTerrain(const Camera &camera, const Light &light, const Sh
 
 	renderLight(camera.getProjectionMatrix(), camera.getViewMatrix(), light);
 
-	//	terrain.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles);
-	//	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
+	terrain.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles);
+	trees.render(camera.getProjectionMatrix(), camera.getViewMatrix(), shaderToggles, terrain.terrainParams);
 
-	//	renderSky(camera.getProjectionMatrix(), camera.getViewMatrix());
+	static float animationTime = 0.0F;
+	animationTime += static_cast<float>(getLastFrameTime());
+	sky.render(camera.getProjectionMatrix(), camera.getViewMatrix(), animationTime);
 }
 
 void Landscape::renderSSAO() {
@@ -432,7 +434,7 @@ void Landscape::initGBuffer() {
 	GL_Call(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
 	GL_Call(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer));
 
-//	validate_framebuffer();
+	//	validate_framebuffer();
 }
 
 void Landscape::initSSAOBuffer() {
@@ -450,7 +452,7 @@ void Landscape::initSSAOBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0));
 
-//	validate_framebuffer();
+	//	validate_framebuffer();
 }
 
 void Landscape::initSSAOBlurBuffer() {
@@ -468,7 +470,7 @@ void Landscape::initSSAOBlurBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBlurBuffer, 0));
 
-//	validate_framebuffer();
+	//	validate_framebuffer();
 }
 
 void Landscape::initKernelAndNoiseTexture() {
@@ -535,10 +537,4 @@ void Landscape::onAspectRatioChange() {
 	// update SSAO color blur buffer
 	GL_Call(glBindTexture(GL_TEXTURE_2D, ssaoColorBlurBuffer));
 	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr));
-}
-
-void Landscape::renderSky(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) {
-	static float animationTime = 0.0F;
-	animationTime += static_cast<float>(getLastFrameTime());
-	sky.render(projectionMatrix, viewMatrix, animationTime);
 }

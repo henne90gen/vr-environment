@@ -42,20 +42,22 @@ class Trees {
 	[[nodiscard]] unsigned int getTreePositionTextureId() const { return treePositionTextureId; }
 
 	void init();
+	void showGui();
+
+	void render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const ShaderToggles &shaderToggles,
+				const TerrainParams &terrainParams);
+
+  private:
 	void initComputeShader();
 	void initModel();
 	void initGrid();
 
-	void showGui();
-
-	void generateTrees();
-
-	void render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const ShaderToggles &shaderToggles,
-				const TerrainParams &terrainParams);
 	void renderComputeShader(const TerrainParams &terrainParams);
 	void renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
 					 const ShaderToggles &shaderToggles);
 	void renderGrid(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
-	void renderGeneratedTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-							  const ShaderToggles &shaderToggles);
+	void renderTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
+					 const ShaderToggles &shaderToggles);
+
+	void generateTrees();
 };

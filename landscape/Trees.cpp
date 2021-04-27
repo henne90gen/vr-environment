@@ -55,7 +55,7 @@ void Trees::render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatri
 
 	if (usingGeneratedTrees) {
 		generateTrees();
-		renderGeneratedTrees(projectionMatrix, viewMatrix, shaderToggles);
+		renderTrees(projectionMatrix, viewMatrix, shaderToggles);
 	} else {
 		renderCubes(projectionMatrix, viewMatrix, shaderToggles);
 		renderGrid(projectionMatrix, viewMatrix);
@@ -331,7 +331,7 @@ void Trees::generateTrees() {
 	generatedTreesVA->setIndexBuffer(indexBuffer);
 }
 
-void Trees::renderGeneratedTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
+void Trees::renderTrees(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
 								 const ShaderToggles &shaderToggles) {
 	generatedTreesVA->bind();
 	shader->bind();

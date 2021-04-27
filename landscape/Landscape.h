@@ -69,7 +69,6 @@ class Landscape {
 
 	void renderTerrain(const Camera &camera, const Light &light, const ShaderToggles &shaderToggles);
 	void renderLight(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const Light &light);
-	void renderSky(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
 	void renderSSAO();
 	void renderSSAOBlur();
 	void renderGBufferToQuad(const Camera &camera, const Light &light, const ShaderToggles &shaderToggles);
