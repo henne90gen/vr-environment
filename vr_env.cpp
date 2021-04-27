@@ -10,12 +10,12 @@ void vr_env::stream_help(std::ostream &os) {
 }
 
 bool vr_env::init(cgv::render::context &ctx) {
-	auto deferred = ref_deferred_renderer(ctx, 1);
+	auto &deferred = ref_deferred_renderer(ctx, 1);
 	if (!deferred.init(ctx)) {
 		return false;
 	}
 
-	auto simple = ref_simple_renderer(ctx, 1);
+	auto &simple = ref_simple_renderer(ctx, 1);
 	if (!simple.init(ctx)) {
 		return false;
 	}
