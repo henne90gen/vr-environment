@@ -2,8 +2,6 @@
 
 #include <cgv_gl/gl/gl_tools.h>
 
-#include <array>
-
 deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
 	static deferred_renderer r;
@@ -31,76 +29,162 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	unsigned int width = ctx.get_width();
-	unsigned int height = ctx.get_height();
+#if USE_TEST_TEXTURE
+	testTexture = cgv::render::texture("uint8[R,G,B,A]", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
+	const std::string fileName = "../../texture_test.bmp";
+	if (!testTexture.create_from_image(ctx, fileName)) {
+		std::cerr << "failed to create texture from image: " << testTexture.last_error << std::endl;
+		return false;
+	}
+#endif
 
-	// Create framebuffer object
-	GL_Call(glGenFramebuffers(1, &gBuffer));
-	GL_Call(glBindFramebuffer(GL_FRAMEBUFFER, gBuffer));
+	gBuffer = cgv::render::frame_buffer();
+	if (!gBuffer.create(ctx)) {
+		std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-	// Create position buffer
-	GL_Call(glGenTextures(1, &gPosition));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, gPosition));
-	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0));
+	const std::string ws = std::to_string(ctx.get_width());
+	const std::string hs = std::to_string(ctx.get_height());
+	const std::string description = std::string("flt16[R,G,B,A](") + ws + "," + hs + ")";
+	gPosition = cgv::render::texture(    //
+		  description,                   //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE  //
+	);
+	if (!gPosition.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
+		std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-	// Create normal buffer
-	GL_Call(glGenTextures(1, &gNormal));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, gNormal));
-	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0));
+	gNormal = cgv::render::texture(      //
+		  description,                   //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE  //
+	);
+	if (!gNormal.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gNormal, 0, 1)) {
+		std::cerr << "Failed to attach normal texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-	// create color buffer
-	GL_Call(glGenTextures(1, &gAlbedo));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, gAlbedo));
-	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, nullptr));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0));
+	const std::string albedoDescription = std::string("uint8[R,G,B,A](") + ws + "," + hs + ")";
+	gAlbedo = cgv::render::texture(      //
+		  albedoDescription,             //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE  //
+	);
+	if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
+		std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
+	// TODO also attach the doLightingBuffer
 	// create do-lighting buffer
-	GL_Call(glGenTextures(1, &gDoLighting));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, gDoLighting));
-	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gDoLighting, 0));
+	//	GL_Call(glGenTextures(1, &gDoLighting));
+	//	GL_Call(glBindTexture(GL_TEXTURE_2D, gDoLighting));
+	//	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr));
+	//	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	//	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	//	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gDoLighting, 0));
 
-	std::array<unsigned int, 4> attachments = {
-		  GL_COLOR_ATTACHMENT0, //
-		  GL_COLOR_ATTACHMENT1, //
-		  GL_COLOR_ATTACHMENT2, //
-		  GL_COLOR_ATTACHMENT3, //
-	};
-	glDrawBuffers(attachments.size(), reinterpret_cast<unsigned int *>(&attachments[0]));
+	gDepth = cgv::render::render_buffer("[D]");
+	if (!gDepth.create(ctx)) {
+		std::cerr << "Failed to create depth buffer" << gDepth.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gDepth)) {
+		std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-	// Create depth buffer
-	GL_Call(glGenRenderbuffers(1, &depthBuffer));
-	GL_Call(glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer));
-	GL_Call(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-	GL_Call(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer));
+	if (!gBuffer.is_complete(ctx)) {
+		std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-	res = validate_framebuffer();
-	GL_Call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	return res;
+	return true;
 }
 
 bool deferred_renderer::enable(cgv::render::context &ctx) {
 	const auto &strs = get_style<deferred_render_style>();
 
-	if (!surface_renderer::enable(ctx))
+	if (!surface_renderer::enable(ctx)) {
 		return false;
+	}
 
-	if (!ref_prog().is_linked())
+	if (!ref_prog().is_linked()) {
 		return false;
+	}
+
+	if (!gPosition.enable(ctx, 0)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gPosition", 0)) {
+		return false;
+	}
+
+	if (!gNormal.enable(ctx, 1)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gNormal", 1)) {
+		return false;
+	}
+
+	if (!gAlbedo.enable(ctx, 2)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gAlbedo", 2)) {
+		return false;
+	}
+
+#if USE_TEST_TEXTURE
+	if (!testTexture.enable(ctx, 0)) {
+		return false;
+	}
+#endif
 
 	return true;
+}
+
+void deferred_renderer::render(cgv::render::context &ctx, const std::function<void()> &func) {
+	if (!gBuffer.enable(ctx)) {
+		std::cerr << "Failed to enable gBuffer: " << gBuffer.last_error << std::endl;
+		return;
+	}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	func();
+
+	if (!gBuffer.disable(ctx)) {
+		std::cerr << "Failed to disable gBuffer: " << gBuffer.last_error << std::endl;
+		return;
+	}
+
+	set_position_array(ctx, positions);
+	set_texcoord_array(ctx, texcoords);
+	set_indices(ctx, indices);
+	renderer::render(ctx, 0, indices.size());
 }
 
 bool deferred_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }

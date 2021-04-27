@@ -10,8 +10,15 @@ void vr_env::stream_help(std::ostream &os) {
 }
 
 bool vr_env::init(cgv::render::context &ctx) {
-	ref_simple_renderer(ctx, 1);
-	ref_deferred_renderer(ctx, 1);
+	auto deferred = ref_deferred_renderer(ctx, 1);
+	if (!deferred.init(ctx)) {
+		return false;
+	}
+
+	auto simple = ref_simple_renderer(ctx, 1);
+	if (!simple.init(ctx)) {
+		return false;
+	}
 
 	return true;
 }
@@ -24,45 +31,27 @@ void vr_env::clear(cgv::render::context &ctx) {
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
 
 void vr_env::draw(cgv::render::context &ctx) {
-	{
-		auto &simple = ref_simple_renderer(ctx);
-		std::vector<vec3> positions = {
-			  {0.0, 0.0, 0.0},
-			  {1.0, 0.0, 0.0},
-			  {1.0, 1.0, 0.0},
-		};
-		simple.set_position_array(ctx, positions);
-		std::vector<vec3> colors = {
-			  {0.0, 1.0, 1.0},
-			  {1.0, 0.0, 1.0},
-			  {1.0, 1.0, 0.0},
-		};
-		simple.set_color_array(ctx, colors);
-		std::vector<unsigned int> indices = {0, 1, 2};
-		simple.set_indices(ctx, indices);
-		simple.render(ctx, 0, 3);
-	}
+	auto &deferred = ref_deferred_renderer(ctx);
 
-	{
-		auto &deferred = ref_deferred_renderer(ctx);
-		std::vector<vec3> positions = {
-			  {0.0, 0.0, 0.0},
-			  {1.0, 0.0, 0.0},
-			  {1.0, 1.0, 0.0},
-			  {0.0, 1.0, 0.0},
-		};
-		deferred.set_position_array(ctx, positions);
-		std::vector<vec2> texcoords = {
-			  {0.0, 0.0},
-			  {1.0, 0.0},
-			  {1.0, 1.0},
-			  {0.0, 1.0},
-		};
-		deferred.set_texcoord_array(ctx, texcoords);
-		std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
-		deferred.set_indices(ctx, indices);
-		deferred.render(ctx, 0, 6);
-	}
+	deferred.render(ctx, [&]() {
+		auto &simple = ref_simple_renderer(ctx);
+
+		auto tex = cgv::render::texture("uint8[R,G,B,A]", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
+		const std::string fileName = "../../texture_test.bmp";
+		if (!tex.create_from_image(ctx, fileName)) {
+			std::cerr << "failed to create texture from image: " << tex.last_error << std::endl;
+			return;
+		}
+		if (!tex.enable(ctx, 0)) {
+			return;
+		}
+		simple.ref_prog().set_uniform(ctx, "tex", 0);
+
+		simple.set_position_array(ctx, positions);
+		simple.set_texcoord_array(ctx, texcoords);
+		simple.set_indices(ctx, indices);
+		simple.render(ctx, 0, indices.size());
+	});
 }
 
 void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx); }

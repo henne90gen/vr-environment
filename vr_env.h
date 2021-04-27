@@ -22,6 +22,19 @@ class vr_env : public cgv::base::node,
 			   public cgv::gui::provider {
   private:
 	Landscape landscape = {};
+    std::vector<vec3> positions = {
+          {0.0, 0.0, 0.0},
+          {1.0, 0.0, 0.0},
+          {1.0, 1.0, 0.0},
+          {0.0, 1.0, 0.0},
+    };
+    std::vector<vec2> texcoords = {
+          {0.0, 1.0},
+          {1.0, 1.0},
+          {1.0, 0.0},
+          {0.0, 0.0},
+    };
+    std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
   public:
 	vr_env();

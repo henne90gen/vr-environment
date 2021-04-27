@@ -31,5 +31,6 @@ set_target_properties(
 target_link_libraries(vr_env PRIVATE
         opengl
         image
+        cgv_media
         cgv_gl)
 add_dependencies(vr_env cgv_viewer cg_fltk crg_grid crg_stereo_view)

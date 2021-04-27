@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cgv/render/frame_buffer.h>
 #include <cgv_gl/surface_renderer.h>
-#include <util/OpenGLUtils.h>
+
+#define USE_TEST_TEXTURE 0
 
 class deferred_renderer;
 
@@ -19,12 +21,31 @@ struct deferred_render_style : public cgv::render::surface_render_style {
 /// renderer that supports point splatting
 class deferred_renderer : public cgv::render::surface_renderer {
   private:
-    GLuint gBuffer = 0;
-    GLuint gPosition = 0;
-    GLuint gNormal = 0;
-    GLuint gAlbedo = 0;
-    GLuint gDoLighting = 0;
-    GLuint depthBuffer = 0;
+	std::vector<vec3> positions = {
+		  {-1.0, -1.0, 0.0},
+		  {1.0, -1.0, 0.0},
+		  {1.0, 1.0, 0.0},
+		  {-1.0, 1.0, 0.0},
+	};
+	std::vector<vec2> texcoords = {
+		  {0.0, 1.0},
+		  {1.0, 1.0},
+		  {1.0, 0.0},
+		  {0.0, 0.0},
+	};
+	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+
+  public:
+#if USE_TEST_TEXTURE
+	cgv::render::texture testTexture;
+#endif
+
+	cgv::render::frame_buffer gBuffer;
+	cgv::render::texture gPosition;
+	cgv::render::texture gNormal;
+	cgv::render::texture gAlbedo;
+	cgv::render::render_buffer gDepth;
+	// TODO GLuint gDoLighting = 0;
 
   protected:
 	/// overload to allow instantiation of deferred_renderer
@@ -39,6 +60,7 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	bool validate_attributes(const cgv::render::context &ctx) const override;
 	bool enable(cgv::render::context &ctx) override;
 	bool disable(cgv::render::context &ctx) override;
+	void render(cgv::render::context &ctx, const std::function<void()> &func);
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;

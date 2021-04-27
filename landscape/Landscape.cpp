@@ -432,7 +432,7 @@ void Landscape::initGBuffer() {
 	GL_Call(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
 	GL_Call(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer));
 
-	validate_framebuffer();
+//	validate_framebuffer();
 }
 
 void Landscape::initSSAOBuffer() {
@@ -450,7 +450,7 @@ void Landscape::initSSAOBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0));
 
-	validate_framebuffer();
+//	validate_framebuffer();
 }
 
 void Landscape::initSSAOBlurBuffer() {
@@ -468,7 +468,7 @@ void Landscape::initSSAOBlurBuffer() {
 	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBlurBuffer, 0));
 
-	validate_framebuffer();
+//	validate_framebuffer();
 }
 
 void Landscape::initKernelAndNoiseTexture() {

@@ -11,11 +11,17 @@ mat3 get_inverse_normal_matrix();
 //***** end interface of view.glsl ***********************************
 
 in vec4 position;
-in vec4 color;
+in vec4 normal;
+in vec2 texcoord;
 
-out vec4 color_fs;
+out vec3 position_fs;
+out vec3 normal_fs;
+out vec2 texcoord_fs;
 
 void main() {
-	color_fs = color;
-	gl_Position = get_modelview_projection_matrix() * vec4(position.xyz, 1.0);
+	vec4 pos = get_modelview_matrix() * position;
+	position_fs = pos.xyz;
+	normal_fs = normal.xyz;
+	texcoord_fs = texcoord;
+	gl_Position = get_projection_matrix() * pos;
 }

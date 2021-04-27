@@ -23,5 +23,3 @@ bool GL_LogCall(const char *function, const char *file, int line);
 glm::mat4 createViewMatrix(const glm::vec3 &cameraPosition, const glm::vec3 &cameraRotation = glm::vec3(0.0F));
 glm::mat4 createModelMatrix(const glm::vec3 &modelPosition, const glm::vec3 &modelRotation = glm::vec3(0.0F),
                             const glm::vec3 &modelScale = glm::vec3(1.0F));
-
-bool validate_framebuffer();

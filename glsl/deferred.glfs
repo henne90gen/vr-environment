@@ -1,69 +1,21 @@
-#version 330 core
+#version 460
 
-in vec2 TexCoords;
+in vec2 texcoord_fs;
 
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
-uniform sampler2D gDoLighting;
-
-struct Light {
-    vec3 FragmentToLightDir;
-    vec3 Color;
-
-    float Ambient;
-    float Diffuse;
-    float Specular;
-};
-uniform Light light;
-
-uniform vec4 cameraOrientation;
-uniform float aspectRatio;
-uniform mat4 viewMatrix;
-
-uniform float exposure = 1.0F;
-uniform float gamma = 1.0F;
 
 out vec4 color;
 
-vec3 calculateLight(vec3 FragPos, vec3 Normal, Light light, vec3 Diffuse, float AmbientOcclusion) {
-    // TODO this produces a shine through artifact, when the light comes from behind the fragment
-
-    vec3 ambient = light.Ambient * light.Color * Diffuse * AmbientOcclusion;
-    vec3 viewDir = normalize(-FragPos);// camera is at vec3(0,0,0)
-    vec3 fragmentToLightDir = normalize(light.FragmentToLightDir);
-
-    // diffuse
-    vec3 diffuse = max(dot(Normal, fragmentToLightDir), 0.0) * Diffuse * light.Diffuse * light.Color;
-
-    // specular
-    vec3 halfwayDir = normalize(fragmentToLightDir + viewDir);
-    float spec = pow(max(dot(Normal, halfwayDir), 0.0), 2.0);
-    vec3 specular = light.Specular * light.Color * spec;
-
-    return ambient + diffuse + specular;
-}
-
 void main() {
-    color = vec4(1.0F, 1.0F, 1.0F, 1.0F);
-    return;
-    vec3 FragPos = texture(gPosition, TexCoords).xyz;
-    vec3 Normal = normalize(texture(gNormal, TexCoords).xyz);
-    vec3 Diffuse = texture(gAlbedo, TexCoords).rgb;
-
-    if (FragPos.x == 0.0 && FragPos.y == 0.0 && FragPos.z == 0.0) {
-        // position of the background, set this to something very far away
-        vec2 uv = (TexCoords - vec2(0.5)) * 2.0;
-        uv.x *= aspectRatio;
-        FragPos = normalize(vec3(uv, -1.0)) * 1e12;
-    }
-
-    float AmbientOcclusion = 1.0F;
-    vec3 lighting = calculateLight(FragPos, Normal, light, Diffuse, AmbientOcclusion);
-
-    color = vec4(lighting, 1.0);
-
-    //    color = vec4(FragPos, 1.0);
-    //    vec3 cameraDir = FragPos - cameraPosition;
-    //    color = vec4(length(cameraDir) / 1000, 0.0, 0.0, 1.0);
+    color = texture(gAlbedo, texcoord_fs);
+    //    vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
+    //    vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
+    //    vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
+    //    color = vec4(1.0F, 1.0F, 0.5F, 1.0F);
+    //    color = vec4(FragPos, 1.0F);
+    //    color = vec4(Normal, 1.0F);
+    //    color = vec4(Diffuse, 1.0F);
+    //    color = vec4(TexCoord, 0.0F, 1.0F);
 }

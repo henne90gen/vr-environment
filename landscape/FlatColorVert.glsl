@@ -13,6 +13,6 @@ out vec3 model_position;
 void main() {
     vec4 position = viewMatrix * modelMatrix * vec4(a_Position, 1.0F);
     model_position = position.xyz;
-    gl_Position = projectionMatrix * position;
     normal_frag_in = a_Normal;
+    gl_Position = projectionMatrix * position;
 }

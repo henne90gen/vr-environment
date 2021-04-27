@@ -1,9 +1,27 @@
 #version 460
 
-in vec4 color_fs;
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
 
-out vec4 color;
+in vec3 position_fs;
+in vec3 normal_fs;
+in vec2 texcoord_fs;
+
+layout (location = 0) out vec3 gPosition;
+layout (location = 1) out vec3 gNormal;
+layout (location = 2) out vec3 gAlbedo;
+
+uniform sampler2D tex;
 
 void main() {
-    color = color_fs;
+    gPosition = position_fs;
+    gNormal = normalize(get_normal_matrix() * normal_fs);
+    gAlbedo = texture(tex, texcoord_fs).rgb;
 }
