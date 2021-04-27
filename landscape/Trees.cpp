@@ -42,10 +42,6 @@ void Trees::showGui() {
     ImGui::DragFloat("Global Tree Scale", &treeScale, 0.001F);
     treeSettings.showGui();
 #endif
-#if USE_TREE_MODELS
-	ImGui::Text("Mesh count: %zu", treeModel.getMeshes().size());
-	ImGui::Text("Vertex count: %d", vertexCount);
-#endif
 }
 
 void Trees::render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix, const ShaderToggles &shaderToggles,
@@ -61,12 +57,7 @@ void Trees::render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatri
 		generateTrees();
 		renderGeneratedTrees(projectionMatrix, viewMatrix, shaderToggles);
 	} else {
-#if USE_TREE_MODELS
-		renderTreeModels(projectionMatrix, viewMatrix, shaderToggles);
-#else
 		renderCubes(projectionMatrix, viewMatrix, shaderToggles);
-#endif
-
 		renderGrid(projectionMatrix, viewMatrix);
 	}
 }
@@ -164,79 +155,10 @@ void Trees::renderGrid(const glm::mat4 &projectionMatrix, const glm::mat4 &viewM
 	}
 }
 
-void Trees::initModel() {
-#if USE_TREE_MODELS
-#if 1
-	unsigned int error =
-		  Model::loadFromFile("landscape_resources/assets/models/low_poly_tree/low_poly_tree.obj", shader, treeModel);
-#else
-	unsigned int error =
-		  Model::loadFromFile("landscape_resources/assets/models/MangoTree/tree_mango_var01.obj", shader, treeModel);
-#endif
-	if (error != 0) {
-		std::cout << "Failed to load tree model" << std::endl;
-		return;
-	}
-
-	for (const auto &mesh : treeModel.getRawModel().meshes) {
-		vertexCount += mesh.vertices.size();
-	}
-#else
-	cubeVA = createCubeVA(shader);
-#endif
-}
-
-void Trees::renderTreeModels(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
-							 const ShaderToggles &shaderToggles) {
-#if USE_TREE_MODELS
-	if (!treeModel.isLoaded()) {
-		return;
-	}
-
-	glm::mat4 modelMatrix = glm::mat4(1.0F);
-	glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(viewMatrix * modelMatrix)));
-	shader->bind();
-	shader->setUniform("modelMatrix", modelMatrix);
-	shader->setUniform("normalMatrix", normalMatrix);
-	shader->setUniform("viewMatrix", viewMatrix);
-	shader->setUniform("projectionMatrix", projectionMatrix);
-
-	shader->setUniform("treeCount", treeCount);
-	shader->setUniform("textureSampler", 0);
-	shader->setUniform("positionTexture", 1);
-
-	GL_Call(glActiveTexture(GL_TEXTURE1));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, treePositionTextureId));
-
-	GL_Call(glActiveTexture(GL_TEXTURE0));
-	for (const auto &mesh : treeModel.getMeshes()) {
-		if (!mesh.visible) {
-			continue;
-		}
-
-		mesh.vertexArray->bind();
-
-		mesh.texture->bind();
-
-		if (shaderToggles.drawWireframe) {
-			GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-		}
-
-		GL_Call(
-			  glDrawElementsInstanced(GL_TRIANGLES, mesh.indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr, treeCount));
-
-		if (shaderToggles.drawWireframe) {
-			GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-		}
-
-		mesh.vertexArray->unbind();
-	}
-#endif
-}
+void Trees::initModel() { cubeVA = createCubeVA(shader); }
 
 void Trees::renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
 						const ShaderToggles &shaderToggles) {
-#if !USE_TREE_MODELS
 	cubeVA->bind();
 	shader->bind();
 	cubeVA->setShader(shader);
@@ -260,7 +182,6 @@ void Trees::renderCubes(const glm::mat4 &projectionMatrix, const glm::mat4 &view
 	if (shaderToggles.drawWireframe) {
 		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 	}
-#endif
 }
 
 void appendLeaf(int positionOffset, int indexOffset, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals,
