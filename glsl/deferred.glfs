@@ -8,20 +8,20 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 
-uniform bool show_position = false;
-uniform bool show_normal = false;
-uniform bool show_albedo = false;
+uniform int render_target = 0;
 
 void main() {
-    if (show_position) {
+    color = vec4(render_target/4, 1, 0, 1);
+    return;
+    if (render_target == 1) {
         color = texture(gPosition, texcoord_fs);
         return;
     }
-    if (show_normal) {
+    if (render_target == 2) {
         color = texture(gNormal, texcoord_fs);
         return;
     }
-    if (show_albedo) {
+    if (render_target == 3) {
         color = texture(gAlbedo, texcoord_fs);
         return;
     }

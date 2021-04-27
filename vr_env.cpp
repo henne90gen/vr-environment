@@ -70,6 +70,7 @@ void vr_env::on_set(void *member_ptr) {
 	// sure any changes to the render styles ar being applied
 	update_member(member_ptr);
 	post_redraw();
+	std::cout << "redraw" << std::endl;
 }
 
 cgv::base::object_registration<vr_env> vr_env_reg("vr_env"); // NOLINT(cert-err58-cpp)

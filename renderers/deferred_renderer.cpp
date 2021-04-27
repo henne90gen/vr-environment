@@ -149,6 +149,11 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	const auto &style = get_style<deferred_render_style>();
+	if (!ref_prog().set_uniform(ctx, "render_target", static_cast<int>(style.render_target))) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -197,8 +202,9 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 		if (value_type != cgv::type::info::type_name<deferred_render_style>::get_name())
 			return false;
 		auto *style = reinterpret_cast<deferred_render_style *>(value_ptr);
-		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(style));
-		p->add_control("Show Albedo", style->show_albedo);
+		p->add_control(
+			  "render target", style->render_target, "dropdown",
+			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3';tooltip='The final texture to draw to the screen.'");
 		return true;
 	}
 };

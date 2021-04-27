@@ -11,13 +11,18 @@ class deferred_renderer;
 	counter decreases to 0, singelton renderer is destructed. */
 extern deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change = 0);
 
+enum class DeferredRenderTarget {
+	DEFAULT = 0,
+	POSITION = 1,
+	NORMAL = 2,
+	ALBEDO = 3,
+};
+
 struct deferred_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	deferred_render_style() = default;
 
-    bool show_position = false;
-    bool show_normal = false;
-    bool show_albedo = false;
+	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
 };
 
 /// renderer that supports point splatting

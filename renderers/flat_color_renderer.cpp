@@ -38,7 +38,6 @@ bool flat_color_renderer::enable(cgv::render::context &ctx) {
 		return false;
 
 	const auto &style = get_style<flat_color_render_style>();
-	std::cout << "setting color to " << style.surface_color << std::endl;
 	return ref_prog().set_uniform(ctx, "flat_color", style.surface_color);
 }
 
