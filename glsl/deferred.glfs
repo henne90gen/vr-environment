@@ -11,8 +11,6 @@ uniform sampler2D gAlbedo;
 uniform int render_target = 0;
 
 void main() {
-    color = vec4(render_target/4, 1, 0, 1);
-    return;
     if (render_target == 1) {
         color = texture(gPosition, texcoord_fs);
         return;

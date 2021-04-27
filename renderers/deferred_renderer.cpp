@@ -202,8 +202,9 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 		if (value_type != cgv::type::info::type_name<deferred_render_style>::get_name())
 			return false;
 		auto *style = reinterpret_cast<deferred_render_style *>(value_ptr);
-		p->add_control(
-			  "render target", style->render_target, "dropdown",
+		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(
+			  b, "render target", style->render_target, "dropdown",
 			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3';tooltip='The final texture to draw to the screen.'");
 		return true;
 	}

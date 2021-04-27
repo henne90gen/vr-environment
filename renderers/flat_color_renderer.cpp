@@ -66,8 +66,6 @@ struct flat_color_render_style_gui_creator : public cgv::gui::gui_creator {
 		if (value_type != cgv::type::info::type_name<flat_color_render_style>::get_name())
 			return false;
 		auto *strs_ptr = reinterpret_cast<flat_color_render_style *>(value_ptr);
-		auto *b = dynamic_cast<cgv::base::base *>(p);
-
 		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
 		return true;
 	}
