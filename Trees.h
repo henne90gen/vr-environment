@@ -2,6 +2,7 @@
 
 #include <cgv/render/context.h>
 #include <cgv/render/render_types.h>
+#include <cgv/render/shader_program.h>
 
 #include <gl/Shader.h>
 #include <gl/VertexArray.h>
@@ -19,14 +20,10 @@ class Trees : public cgv::render::render_types {
 	bool showGrid = true;
 
   private:
-	std::shared_ptr<Shader> shader = nullptr;
-
-	std::shared_ptr<Shader> compShader = nullptr;
+	cgv::render::shader_program tree_placement_compute_shader;
+	cgv::render::texture tree_position_texture;
 	unsigned int treePositionTextureWidth = 32;
 	unsigned int treePositionTextureHeight = 32;
-	unsigned int treePositionTextureId = 0;
-
-	std::shared_ptr<VertexArray> cubeVA = nullptr;
 
 	std::shared_ptr<VertexArray> generatedTreesVA = nullptr;
 	std::shared_ptr<Texture> barkTexture = nullptr;
@@ -37,10 +34,11 @@ class Trees : public cgv::render::render_types {
 	float treeScale = 0.15F;
 	TreeSettings treeSettings = {};
 
+	std::vector<box3> gridBoxes = {};
 	float gridHeight = 120.0F;
 
   public:
-	[[nodiscard]] unsigned int getTreePositionTextureId() const { return treePositionTextureId; }
+	[[nodiscard]] const cgv::render::texture &getTreePositionTextureId() const { return tree_position_texture; }
 
 	bool init(cgv::render::context &ctx);
 	void clear(cgv::render::context &ctx);
@@ -48,8 +46,7 @@ class Trees : public cgv::render::render_types {
 	void render(cgv::render::context &ctx, const ShaderToggles &shaderToggles, const TerrainParams &terrainParams);
 
   private:
-	void initComputeShader();
-	void initModel();
+	bool initComputeShader(cgv::render::context &ctx);
 	void initGrid();
 
 	void renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams);

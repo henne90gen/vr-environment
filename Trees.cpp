@@ -22,9 +22,14 @@ bool Trees::init(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!initComputeShader(ctx)) {
+		return false;
+	}
+
+	return true;
+
 	// FIXME finish init code
 #if 0
-	initComputeShader();
 
 	initModel();
 	initGrid();
@@ -56,12 +61,15 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 	}
 }
 
-void Trees::initComputeShader() {
-	// FIXME shader
-	//  compShader = std::make_shared<Shader>();
-	//  compShader->attachComputeShader(SHADER_CODE(landscape_TreeComp));
-	//  compShader->attachShaderLib(SHADER_CODE(landscape_NoiseLib));
+bool Trees::initComputeShader(cgv::render::context &ctx) {
+	if (!tree_placement_compute_shader.is_created()) {
+		if (!tree_placement_compute_shader.build_program(ctx, "tree_placement.glpr", true)) {
+			std::cerr << "could not build program tree_placement.glpr" << std::endl;
+			return false;
+		}
+	}
 
+#if 0
 	GL_Call(glGenTextures(1, &treePositionTextureId));
 	GL_Call(glActiveTexture(GL_TEXTURE0));
 	GL_Call(glBindTexture(GL_TEXTURE_2D, treePositionTextureId));
@@ -72,9 +80,11 @@ void Trees::initComputeShader() {
 	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, treePositionTextureWidth, treePositionTextureHeight, 0, GL_RGBA,
 						 GL_FLOAT, nullptr));
 	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
+#endif
 }
 
 void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams) {
+#if 0
 	compShader->bind();
 	compShader->setUniform("treeCount", treeCount);
 	compShader->setUniform("lodSize", lodSize);
@@ -83,17 +93,10 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 	GL_Call(glDispatchCompute(4, 4, 1));
 	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
+#endif
 }
 
 void Trees::initGrid() {
-	// FIXME initialize grid boxes here
-}
-
-void Trees::renderGrid(cgv::render::context &ctx) {
-	if (!showGrid) {
-		return;
-	}
-
 	const float lodH = lodSize / 2.0F;
 	const float lodIH = lodInnerSize / 2.0F;
 	const float smallSideLength = (lodSize - lodInnerSize) / 2.0F;
@@ -108,24 +111,23 @@ void Trees::renderGrid(cgv::render::context &ctx) {
 		  {-lodH, -lodH, smallSideLength, smallSideLength}, {-lodIH, -lodH, lodInnerSize, smallSideLength},
 		  {lodIH, -lodH, smallSideLength, smallSideLength},
 	};
-	auto boxes = std::vector<box3>();
 	for (const auto &gridOffset : gridOffsets) {
-		//		auto modelMatrix = glm::identity<glm::mat4>();
-		//		modelMatrix = glm::translate(modelMatrix, glm::vec3(gridOffset.x, gridHeight, gridOffset.y));
-		//		modelMatrix = glm::scale(modelMatrix, glm::vec3(gridOffset.z, 1.0F, gridOffset.w));
-		boxes.emplace_back(                                                              //
+		gridBoxes.emplace_back(                                                          //
 			  vec3(gridOffset.x, gridHeight, gridOffset.y),                              //
 			  vec3(gridOffset.x + gridOffset.z, gridHeight, gridOffset.y + gridOffset.w) //
 		);
 	}
-
-	auto &box_wire = cgv::render::ref_box_wire_renderer(ctx);
-	box_wire.set_box_array(ctx, boxes);
-	//    box_wire.set_render_style(box_rstyle);
-	box_wire.render(ctx, 0, boxes.size());
 }
 
-void Trees::initModel() { cubeVA = createCubeVA(shader); }
+void Trees::renderGrid(cgv::render::context &ctx) {
+	if (!showGrid) {
+		return;
+	}
+
+	auto &box_wire = cgv::render::ref_box_wire_renderer(ctx);
+	box_wire.set_box_array(ctx, gridBoxes);
+	box_wire.render(ctx, 0, gridBoxes.size());
+}
 
 void Trees::renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
 	// FIXME use box_renderer here
