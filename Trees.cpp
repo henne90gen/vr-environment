@@ -21,12 +21,14 @@
 bool Trees::init(cgv::render::context &ctx) {
 	auto &box_wire = ref_box_wire_renderer(ctx, 1);
 	if (!box_wire.init(ctx)) {
+		std::cerr << "failed to init box_wire_renderer" << std::endl;
 		return false;
 	}
 
 	initGrid();
 
 	if (!initComputeShader(ctx)) {
+		std::cerr << "failed to init tree placement compute shader" << std::endl;
 		return false;
 	}
 
@@ -108,6 +110,11 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 	GL_Call(glDispatchCompute(4, 4, 1));
 	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
 #else
+	if (!tree_placement_compute_shader.enable(ctx)) {
+		std::cout << "failed to enable tree placement compute shader" << std::endl;
+		return;
+	}
+
 	tree_placement_compute_shader.set_uniform(ctx, "treeCount", treeCount);
 	tree_placement_compute_shader.set_uniform(ctx, "lodSize", lodSize);
 	tree_placement_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);

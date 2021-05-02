@@ -14,8 +14,14 @@ bool vr_env::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	auto &simple = ref_flat_color_renderer(ctx, 1);
-	if (!simple.init(ctx)) {
+	auto &flat_color = ref_flat_color_renderer(ctx, 1);
+	if (!flat_color.init(ctx)) {
+		return false;
+	}
+
+	test_texture = cgv::render::texture();
+	if (!test_texture.create_from_image(ctx, "../../texture_test.bmp")) {
+		std::cerr << "failed to create test texture: " << test_texture.last_error << std::endl;
 		return false;
 	}
 

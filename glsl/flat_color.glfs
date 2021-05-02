@@ -27,7 +27,6 @@ void main() {
     gNormal = normalize(get_normal_matrix() * normal_fs);
     if (has_texture) {
         gAlbedo = texture(texture_sampler, uv_fs).rgb;
-//        gAlbedo = vec3(uv_fs, 0.0);
     } else {
         gAlbedo = flat_color;
     }
