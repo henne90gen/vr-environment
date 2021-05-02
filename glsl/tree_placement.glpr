@@ -1,1 +1,2 @@
 compute_file:tree_placement.glcs
+compute_file:noise_lib.glsl

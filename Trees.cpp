@@ -22,6 +22,8 @@ bool Trees::init(cgv::render::context &ctx) {
 		return false;
 	}
 
+	initGrid();
+
 	if (!initComputeShader(ctx)) {
 		return false;
 	}
@@ -30,10 +32,6 @@ bool Trees::init(cgv::render::context &ctx) {
 
 	// FIXME finish init code
 #if 0
-
-	initModel();
-	initGrid();
-
 	barkTexture = std::make_shared<Texture>();
 
 	Image img = {};
@@ -69,6 +67,7 @@ bool Trees::initComputeShader(cgv::render::context &ctx) {
 		}
 	}
 
+	return true;
 #if 0
 	GL_Call(glGenTextures(1, &treePositionTextureId));
 	GL_Call(glActiveTexture(GL_TEXTURE0));

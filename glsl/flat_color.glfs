@@ -18,9 +18,15 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedo;
 
 uniform vec3 flat_color;
+uniform sampler2D texture_sampler;
+uniform bool use_texture;
 
 void main() {
     gPosition = position_fs;
     gNormal = normalize(get_normal_matrix() * normal_fs);
-    gAlbedo = flat_color;
+    if (use_texture) {
+        gAlbedo = texture(texture_sampler, uv_fs).rgb;
+    } else {
+        gAlbedo = flat_color;
+    }
 }
