@@ -1,3 +1,5 @@
+#version 430 core
+
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
     float frequency;

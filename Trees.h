@@ -38,7 +38,7 @@ class Trees : public cgv::render::render_types {
 	float gridHeight = 120.0F;
 
   public:
-	[[nodiscard]] const cgv::render::texture &getTreePositionTextureId() const { return tree_position_texture; }
+	[[nodiscard]] const cgv::render::texture &get_tree_placement_texture() const { return tree_position_texture; }
 
 	bool init(cgv::render::context &ctx);
 	void clear(cgv::render::context &ctx);

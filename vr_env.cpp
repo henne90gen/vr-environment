@@ -46,6 +46,7 @@ void vr_env::draw(cgv::render::context &ctx) {
 		flat_color.set_render_style(flat_color_style);
 		flat_color.set_position_array(ctx, positions);
 		flat_color.set_texcoord_array(ctx, texcoords);
+		flat_color.set_texture(ctx, trees.get_tree_placement_texture());
 		flat_color.set_indices(ctx, indices);
 		flat_color.render(ctx, 0, indices.size());
 	});

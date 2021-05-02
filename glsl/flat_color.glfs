@@ -12,6 +12,7 @@ mat3 get_inverse_normal_matrix();
 
 in vec3 position_fs;
 in vec3 normal_fs;
+in vec2 uv_fs;
 
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
@@ -19,13 +20,14 @@ layout (location = 2) out vec3 gAlbedo;
 
 uniform vec3 flat_color;
 uniform sampler2D texture_sampler;
-uniform bool use_texture;
+uniform bool has_texture;
 
 void main() {
     gPosition = position_fs;
     gNormal = normalize(get_normal_matrix() * normal_fs);
-    if (use_texture) {
+    if (has_texture) {
         gAlbedo = texture(texture_sampler, uv_fs).rgb;
+//        gAlbedo = vec3(uv_fs, 0.0);
     } else {
         gAlbedo = flat_color;
     }

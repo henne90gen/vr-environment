@@ -38,7 +38,16 @@ bool flat_color_renderer::enable(cgv::render::context &ctx) {
 		return false;
 
 	const auto &style = get_style<flat_color_render_style>();
-	return ref_prog().set_uniform(ctx, "flat_color", style.surface_color);
+	if (!ref_prog().set_uniform(ctx, "flat_color", style.surface_color)) {
+		return false;
+	}
+	if (has_texture && !ref_prog().set_uniform(ctx, "has_texture", has_texture)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "texture_sampler", 0)) {
+		return false;
+	}
+	return texture.enable(ctx, 0);
 }
 
 bool flat_color_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }
@@ -50,6 +59,11 @@ bool flat_color_render_style_reflect::self_reflect(cgv::reflect::reflection_hand
 void flat_color_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips,
 							   bool use_adjacency, uint32_t strip_restart_index) {
 	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
+}
+
+void flat_color_renderer::set_texture(cgv::render::context &ctx, const cgv::render::texture &t) {
+	has_texture = true;
+	texture = t;
 }
 
 cgv::reflect::extern_reflection_traits<flat_color_render_style, flat_color_render_style_reflect>

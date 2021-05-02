@@ -2,6 +2,8 @@
 
 #include <cgv_gl/gl/gl_tools.h>
 
+#include "../macros.h"
+
 deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
 	static deferred_renderer r;
@@ -177,9 +179,6 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 	renderer::render(ctx, 0, indices.size());
 
 	{
-// TODO this macro is a hack. The implementation if taken from gl_context.cxx/get_gl_id
-#define get_gl_id(x) (const GLuint &)(x) - 1
-
 		// NOTE: copying the depth buffer from the gBuffer to the main depth buffer, because the depth information is
 		// later used by the stereo view to allow scene navigation
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, get_gl_id(gBuffer.handle));

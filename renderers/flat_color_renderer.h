@@ -17,6 +17,9 @@ struct flat_color_render_style : public cgv::render::surface_render_style {
 
 /// renderer that supports point splatting
 class flat_color_renderer : public cgv::render::surface_renderer {
+  private:
+	bool has_texture = false;
+	cgv::render::texture texture;
   protected:
 	/// overload to allow instantiation of flat_color_renderer
 	cgv::render::render_style *create_render_style() const override;
@@ -33,6 +36,7 @@ class flat_color_renderer : public cgv::render::surface_renderer {
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
+	void set_texture(cgv::render::context &ctx, const cgv::render::texture &t);
 };
 
 struct flat_color_render_style_reflect : public flat_color_render_style {

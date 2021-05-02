@@ -9,6 +9,8 @@
 
 #include <cgv_gl/box_wire_renderer.h>
 
+#include "../macros.h"
+
 // FIXME shader
 //  DEFINE_DEFAULT_SHADERS(landscape_Tree)
 //  DEFINE_DEFAULT_SHADERS(landscape_Texture)
@@ -47,7 +49,7 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 	}
 
 	// TODO(henne): compute shader execution can be moved into init
-	//	FIXME renderComputeShader(ctx, terrainParams);
+	renderComputeShader(ctx, terrainParams);
 
 	renderGrid(ctx);
 
@@ -66,6 +68,19 @@ bool Trees::initComputeShader(cgv::render::context &ctx) {
 			return false;
 		}
 	}
+
+	tree_position_texture = cgv::render::texture( //
+		  "flt32[R,G,B,A]",                       //
+		  cgv::render::TF_NEAREST,                //
+		  cgv::render::TF_NEAREST,                //
+		  cgv::render::TW_CLAMP_TO_EDGE,          //
+		  cgv::render::TW_CLAMP_TO_EDGE           //
+	);
+	if (!tree_position_texture.create(ctx, cgv::render::TT_2D, treePositionTextureWidth, treePositionTextureHeight)) {
+		std::cerr << "failed to create tree position texture" << std::endl;
+		return false;
+	}
+	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
 
 	return true;
 #if 0
@@ -90,6 +105,14 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 	compShader->setUniform("lodInnerSize", lodInnerSize);
 	terrainParams.setShaderUniforms(compShader);
 	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
+	GL_Call(glDispatchCompute(4, 4, 1));
+	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
+#else
+	tree_placement_compute_shader.set_uniform(ctx, "treeCount", treeCount);
+	tree_placement_compute_shader.set_uniform(ctx, "lodSize", lodSize);
+	tree_placement_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
+	// TODO set terrainParams to uniforms
+	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 	GL_Call(glDispatchCompute(4, 4, 1));
 	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
 #endif
