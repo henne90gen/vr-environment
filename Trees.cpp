@@ -85,31 +85,9 @@ bool Trees::initComputeShader(cgv::render::context &ctx) {
 	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
 
 	return true;
-#if 0
-	GL_Call(glGenTextures(1, &treePositionTextureId));
-	GL_Call(glActiveTexture(GL_TEXTURE0));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, treePositionTextureId));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, treePositionTextureWidth, treePositionTextureHeight, 0, GL_RGBA,
-						 GL_FLOAT, nullptr));
-	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
-#endif
 }
 
 void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams) {
-#if 0
-	compShader->bind();
-	compShader->setUniform("treeCount", treeCount);
-	compShader->setUniform("lodSize", lodSize);
-	compShader->setUniform("lodInnerSize", lodInnerSize);
-	terrainParams.setShaderUniforms(compShader);
-	GL_Call(glBindImageTexture(0, treePositionTextureId, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
-	GL_Call(glDispatchCompute(4, 4, 1));
-	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
-#else
 	if (!tree_placement_compute_shader.enable(ctx)) {
 		std::cout << "failed to enable tree placement compute shader" << std::endl;
 		return;
@@ -119,10 +97,10 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 	tree_placement_compute_shader.set_uniform(ctx, "lodSize", lodSize);
 	tree_placement_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
 	// TODO set terrainParams to uniforms
+	//  terrainParams.setUniforms(compute_shader);
 	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 	GL_Call(glDispatchCompute(4, 4, 1));
 	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
-#endif
 }
 
 void Trees::initGrid() {
