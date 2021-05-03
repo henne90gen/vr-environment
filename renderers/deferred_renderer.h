@@ -47,8 +47,8 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	cgv::render::texture gPosition;
 	cgv::render::texture gNormal;
 	cgv::render::texture gAlbedo;
+	cgv::render::texture gIsCloud;
 	cgv::render::render_buffer gDepth;
-	// TODO GLuint gDoLighting = 0;
 
   protected:
 	/// overload to allow instantiation of deferred_renderer

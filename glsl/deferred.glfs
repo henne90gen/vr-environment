@@ -1,5 +1,19 @@
 #version 460
 
+//***** begin interface of scatter.glsl ***********************************
+vec3 calculate_scattering(
+vec3 start, // the start of the ray (the camera position)
+vec3 dir, // the direction of the ray (the camera vector)
+float max_dist, // the maximum distance the ray can travel (because something is in the way, like an object)
+
+vec4 cameraOrientation, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
+
+vec3 scene_color, // the color of the scene
+vec3 light_dir, // the direction of the light
+vec3 light_intensity// how bright the light is, affects the brightness of the atmosphere
+);
+//***** end interface of scatter.glsl ***********************************
+
 in vec2 texcoord_fs;
 
 out vec4 color;
@@ -7,8 +21,22 @@ out vec4 color;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
+uniform sampler2D gIsCloud;
 
 uniform int render_target = 0;
+uniform bool use_atmospheric_scattering = false;
+uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
+uniform vec4 camera_orientation;
+
+struct Light {
+    vec3 FragmentToLightDir;
+    vec3 Color;
+
+    float Ambient;
+    float Diffuse;
+    float Specular;
+};
+uniform Light light;
 
 void main() {
     if (render_target == 1) {
@@ -23,9 +51,39 @@ void main() {
         color = texture(gAlbedo, texcoord_fs);
         return;
     }
+    if (render_target == 4) {
+        color = texture(gIsCloud, texcoord_fs);
+        return;
+    }
 
-    color = texture(gAlbedo, texcoord_fs);
-    //    vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
-    //    vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
-    //    vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
+    vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
+    vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
+    vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
+    bool CloudLighting = texture(gIsCloud, texcoord_fs).r == 1.0F;
+
+    color = vec4(Diffuse, 1.0F);
+
+    if (use_atmospheric_scattering) {
+        if (CloudLighting) {
+            vec2 uv = (texcoord_fs - vec2(0.5)) * 2.0;
+            uv.x *= aspect_ratio;
+            FragPos = normalize(vec3(uv, -1.0)) * 1e12;
+        }
+
+        float lightPower = 30.0;
+        vec3 cDir = FragPos;
+        // TODO use atmosphere settings for this scattering function as well
+        color.rgb = calculate_scattering(
+        vec3(0.0),
+        normalize(cDir),
+        length(cDir),
+        camera_orientation,
+        color.rgb,
+        normalize(light.FragmentToLightDir),
+        vec3(lightPower));
+
+        if (CloudLighting){
+            color.rgb = mix(color.rgb, vec3(1.0F), Diffuse.r);
+        }
+    }
 }

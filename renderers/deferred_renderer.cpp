@@ -92,14 +92,23 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	// TODO also attach the doLightingBuffer
-	// create do-lighting buffer
-	//	GL_Call(glGenTextures(1, &gDoLighting));
-	//	GL_Call(glBindTexture(GL_TEXTURE_2D, gDoLighting));
-	//	GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, nullptr));
-	//	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	//	GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	//	GL_Call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gDoLighting, 0));
+	const std::string isCloudDescription = std::string("uint8[R](") + ws + "," + hs + ")";
+	gIsCloud = cgv::render::texture(     //
+		  isCloudDescription,            //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TF_NEAREST,       //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE, //
+		  cgv::render::TW_CLAMP_TO_EDGE  //
+	);
+	if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create albedo texture:" << gIsCloud.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gIsCloud, 0, 3)) {
+		std::cerr << "Failed to attach is_cloud texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
 	gDepth = cgv::render::render_buffer("[D]");
 	if (!gDepth.create(ctx)) {
@@ -148,6 +157,13 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "gAlbedo", 2)) {
+		return false;
+	}
+
+	if (!gIsCloud.enable(ctx, 3)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gIsCloud", 3)) {
 		return false;
 	}
 
