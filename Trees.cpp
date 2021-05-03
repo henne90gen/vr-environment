@@ -9,7 +9,9 @@
 
 #include <cgv_gl/box_wire_renderer.h>
 
-#include "../macros.h"
+#include "macros.h"
+#include "renderers/tree_renderer.h"
+#include "utils.h"
 
 // FIXME shader
 //  DEFINE_DEFAULT_SHADERS(landscape_Tree)
@@ -22,6 +24,12 @@ bool Trees::init(cgv::render::context &ctx) {
 	auto &box_wire = ref_box_wire_renderer(ctx, 1);
 	if (!box_wire.init(ctx)) {
 		std::cerr << "failed to init box_wire_renderer" << std::endl;
+		return false;
+	}
+
+	auto &tree_renderer = ref_tree_renderer(ctx, 1);
+	if (!tree_renderer.init(ctx)) {
+		std::cerr << "failed to init tree_renderer" << std::endl;
 		return false;
 	}
 
@@ -64,8 +72,8 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 }
 
 bool Trees::initComputeShader(cgv::render::context &ctx) {
-	if (!tree_placement_compute_shader.is_created()) {
-		if (!tree_placement_compute_shader.build_program(ctx, "tree_placement.glpr", true)) {
+	if (!tree_position_compute_shader.is_created()) {
+		if (!tree_position_compute_shader.build_program(ctx, "tree_placement.glpr", true)) {
 			std::cerr << "could not build program tree_placement.glpr" << std::endl;
 			return false;
 		}
@@ -88,19 +96,24 @@ bool Trees::initComputeShader(cgv::render::context &ctx) {
 }
 
 void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams) {
-	if (!tree_placement_compute_shader.enable(ctx)) {
-		std::cout << "failed to enable tree placement compute shader" << std::endl;
+	if (!tree_position_compute_shader.enable(ctx)) {
+		std::cout << "failed to enable tree position compute shader" << std::endl;
 		return;
 	}
 
-	tree_placement_compute_shader.set_uniform(ctx, "treeCount", treeCount);
-	tree_placement_compute_shader.set_uniform(ctx, "lodSize", lodSize);
-	tree_placement_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
-	// TODO set terrainParams to uniforms
-	//  terrainParams.setUniforms(compute_shader);
+	tree_position_compute_shader.set_uniform(ctx, "treeCount", treeCount);
+	tree_position_compute_shader.set_uniform(ctx, "lodSize", lodSize);
+	tree_position_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
+	terrainParams.set_shader_uniforms(ctx, tree_position_compute_shader);
+
 	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 	GL_Call(glDispatchCompute(4, 4, 1));
 	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
+
+	if (!tree_position_compute_shader.disable(ctx)) {
+		std::cout << "failed to disable tree position compute shader" << std::endl;
+		return;
+	}
 }
 
 void Trees::initGrid() {
@@ -199,9 +212,7 @@ void appendLeaf(int positionOffset, int indexOffset, std::vector<glm::vec3> &pos
 	indices[indexOffset + 8] = glm::ivec3(positionOffset + 9, positionOffset + 2, positionOffset + 10);
 }
 
-void appendSphereLeaf(const glm::mat4 modelMatrix, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals,
-					  std::vector<glm::vec2> &uvs, std::vector<glm::ivec3> &indices, int positionOffset,
-					  int indexOffset) {
+void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::TreeMesh &tm, int positionOffset, int indexOffset) {
 	std::vector<glm::vec3> vertices = {};
 	std::vector<glm::vec3> sphereNormals = {};
 	std::vector<glm::vec2> sphereUvs = {};
@@ -212,96 +223,93 @@ void appendSphereLeaf(const glm::mat4 modelMatrix, std::vector<glm::vec3> &posit
 
 	for (int i = 0; i < vertices.size(); i++) {
 		const auto &vertex = vertices[i];
-		positions[positionOffset + i] = glm::vec3(modelMatrix * glm::vec4(vertex, 1.0));
+		tm.positions[positionOffset + i] = to_vec3(glm::vec3(modelMatrix * glm::vec4(vertex, 1.0)));
 
 		const auto &normal = sphereNormals[i];
-		normals[positionOffset + i] = glm::vec3(modelMatrix * glm::vec4(normal, 0.0F));
+		tm.normals[positionOffset + i] = to_vec3(glm::vec3(modelMatrix * glm::vec4(normal, 0.0F)));
 
 		auto uv = sphereUvs[i];
 		uv.x *= 0.3289;
 		uv.y *= 0.4358;
 		uv += glm::vec2(0.6711, 0);
-		uvs[positionOffset + i] = uv;
+		tm.uvs[positionOffset + i] = to_vec2(uv);
 	}
 
+#pragma omp parallel for
 	for (int i = 0; i < sphereIndices.size(); i++) {
-		indices[indexOffset + i] = sphereIndices[i] + positionOffset;
+		auto sphereIndex = sphereIndices[i] + positionOffset;
+		tm.indices[indexOffset + i * 3 + 0] = sphereIndex.x;
+		tm.indices[indexOffset + i * 3 + 1] = sphereIndex.y;
+		tm.indices[indexOffset + i * 3 + 2] = sphereIndex.z;
 	}
 }
 
 void Trees::generateTree() {
-	std::vector<glm::vec3> positions = {};
-	std::vector<glm::vec3> normals = {};
-	std::vector<glm::vec2> uvs = {};
-	std::vector<glm::ivec3> indices = {};
+	std::vector<glm::mat4> leafModelMatrices = {};
+	{
+		std::vector<glm::vec3> positions = {};
+		std::vector<glm::vec3> normals = {};
+		std::vector<glm::vec2> uvs = {};
+		std::vector<glm::ivec3> indices = {};
+		Tree *tree = Tree::create(treeSettings);
+		tree->construct(positions, normals, uvs, indices);
+		tree->addLeaves(leafModelMatrices);
 
-	Tree *tree = Tree::create(treeSettings);
-	tree->construct(positions, normals, uvs, indices);
-
-	// adjust uv coordinates to be constrained to the bark side of the texture
+		// adjust uv coordinates to be constrained to the bark side of the texture
 #pragma omp parallel for
-	for (int i = 0; i < uvs.size(); i++) {
-		uvs[i].x *= 0.671;
+		for (int i = 0; i < uvs.size(); i++) {
+			uvs[i].x *= 0.671;
+		}
+
+		tree_mesh.assign(positions, normals, uvs, indices);
 	}
 
-	std::vector<glm::mat4> leafModelMatrices = {};
-	tree->addLeaves(leafModelMatrices);
-
-	int leafPositionOffset = positions.size();
-	int leafIndicesOffset = indices.size();
+	int leafPositionOffset = static_cast<int>(tree_mesh.positions.size());
+	int leafIndicesOffset = static_cast<int>(tree_mesh.indices.size());
 
 	int sectorCount = 7;
 	int stackCount = 5;
 	int verticesPerLeaf = (sectorCount + 1) * (stackCount + 1);
-	int indicesPerLeaf = (stackCount - 1) * sectorCount * 2;
+	int trianglesPerLeaf = (stackCount - 1) * sectorCount * 2;
 	int totalVertices = leafPositionOffset + static_cast<int>(leafModelMatrices.size()) * verticesPerLeaf;
-	int totalIndices = leafIndicesOffset + static_cast<int>(leafModelMatrices.size()) * indicesPerLeaf;
+	int totalIndices = leafIndicesOffset + static_cast<int>(leafModelMatrices.size()) * (trianglesPerLeaf * 3);
 
-	positions.resize(totalVertices);
-	normals.resize(totalVertices);
-	uvs.resize(totalVertices);
-	indices.resize(totalIndices);
+	tree_mesh.positions.resize(totalVertices);
+	tree_mesh.normals.resize(totalVertices);
+	tree_mesh.uvs.resize(totalVertices);
+	tree_mesh.indices.resize(totalIndices);
 
 #pragma omp parallel for
 	for (int i = 0; i < leafModelMatrices.size(); i++) {
 		const auto &modelMatrix = leafModelMatrices[i];
 		int positionOffset = leafPositionOffset + i * verticesPerLeaf;
-		int indexOffset = leafIndicesOffset + i * indicesPerLeaf;
+		int indexOffset = leafIndicesOffset + i * trianglesPerLeaf;
 #define USE_SPHERES_AS_LEAFS 1
 #if USE_SPHERES_AS_LEAFS
-		appendSphereLeaf(modelMatrix, positions, normals, uvs, indices, positionOffset, indexOffset);
+		appendSphereLeaf(modelMatrix, tree_mesh, positionOffset, indexOffset);
 #else
 		appendLeaf(positionOffset, indexOffset, positions, normals, indices, modelMatrix);
 #endif
 	}
-
-	auto vertexData = std::vector<float>(positions.size() * 8);
-#pragma omp parallel for
-	for (int i = 0; i < positions.size(); i++) {
-		vertexData[i * 8 + 0] = positions[i].x;
-		vertexData[i * 8 + 1] = positions[i].y;
-		vertexData[i * 8 + 2] = positions[i].z;
-		vertexData[i * 8 + 3] = normals[i].x;
-		vertexData[i * 8 + 4] = normals[i].y;
-		vertexData[i * 8 + 5] = normals[i].z;
-		vertexData[i * 8 + 6] = uvs[i].x;
-		vertexData[i * 8 + 7] = uvs[i].y;
-	}
-
-	BufferLayout layout = {
-		  {ShaderDataType::Float3, "a_Position"},
-		  {ShaderDataType::Float3, "a_Normal"},
-		  {ShaderDataType::Float2, "a_UV"},
-	};
-	auto vertexBuffer = std::make_shared<VertexBuffer>(vertexData, layout);
-	// FIXME generatedTreesVA->addVertexBuffer(vertexBuffer);
-
-	auto indexBuffer = std::make_shared<IndexBuffer>(indices);
-	// FIXME generatedTreesVA->setIndexBuffer(indexBuffer);
 }
 
 void Trees::renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
-	// FIXME use custom renderer here
+	auto &tr = ref_tree_renderer(ctx);
+#if 1
+	tr.set_position_texture(ctx, tree_position_texture);
+	tr.set_position_array(ctx, tree_mesh.positions);
+	tr.set_normal_array(ctx, tree_mesh.normals);
+	tr.set_texcoord_array(ctx, tree_mesh.uvs);
+	tr.set_indices(ctx, tree_mesh.indices);
+	tr.render(ctx, 0, tree_mesh.indices.size());
+#else
+	tr.set_position_array(ctx, positions);
+	//	tr.set_normal_array(ctx, normals);
+	tr.set_texcoord_array(ctx, texcoords);
+	tr.set_indices(ctx, indices);
+	tr.set_position_texture(ctx, tree_position_texture);
+	tr.render(ctx, 0, indices.size());
+#endif
 
 #if 0
 	generatedTreesVA->bind();
@@ -341,7 +349,10 @@ void Trees::renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderTo
 #endif
 }
 
-void Trees::clear(cgv::render::context &ctx) { ref_box_wire_renderer(ctx, -1); }
+void Trees::clear(cgv::render::context &ctx) {
+	ref_box_wire_renderer(ctx, -1);
+	ref_tree_renderer(ctx, -1);
+}
 
 #include <cgv/gui/provider.h>
 

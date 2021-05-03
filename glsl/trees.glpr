@@ -1,1 +1,3 @@
 files:trees
+vertex_file:view.glsl
+fragment_file:view.glsl

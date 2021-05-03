@@ -1,18 +1,18 @@
 #pragma once
 
+enum class NoiseType {
+	NORMAL = 0,
+	RIDGE = 1,
+};
+
 struct NoiseLayer {
-    enum NoiseType {
-        NORMAL = 0,
-        RIDGE = 1,
-    };
+	bool enabled = true;
+	float frequency = 1.0F;
+	float amplitude = 1.0F;
+	NoiseType noiseType = NoiseType::NORMAL;
 
-    bool enabled = true;
-    float frequency = 1.0F;
-    float amplitude = 1.0F;
-    NoiseType noiseType = NORMAL;
-
-    NoiseLayer() = default;
-    NoiseLayer(float frequency, float amplitude) : frequency(frequency), amplitude(amplitude) {}
+	NoiseLayer() = default;
+	NoiseLayer(float frequency, float amplitude) : frequency(frequency), amplitude(amplitude) {}
 };
 
 #if 0

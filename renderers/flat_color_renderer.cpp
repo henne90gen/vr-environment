@@ -31,17 +31,19 @@ bool flat_color_renderer::init(cgv::render::context &ctx) {
 bool flat_color_renderer::enable(cgv::render::context &ctx) {
 	const auto &strs = get_style<flat_color_render_style>();
 
-	if (!surface_renderer::enable(ctx))
+	if (!surface_renderer::enable(ctx)) {
 		return false;
+	}
 
-	if (!ref_prog().is_linked())
+	if (!ref_prog().is_linked()) {
 		return false;
+	}
 
 	const auto &style = get_style<flat_color_render_style>();
 	if (!ref_prog().set_uniform(ctx, "flat_color", style.surface_color)) {
 		return false;
 	}
-	if (has_texture && !ref_prog().set_uniform(ctx, "has_texture", has_texture)) {
+	if (!ref_prog().set_uniform(ctx, "has_texture", has_texture)) {
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "texture_sampler", 0)) {
@@ -57,8 +59,8 @@ bool flat_color_render_style_reflect::self_reflect(cgv::reflect::reflection_hand
 }
 
 void flat_color_renderer::set_texture(cgv::render::context &ctx, const cgv::render::texture &t) {
-    has_texture = true;
-    texture = t;
+	has_texture = true;
+	texture = t;
 }
 
 void flat_color_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips,

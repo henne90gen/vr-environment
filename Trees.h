@@ -15,17 +15,54 @@
 
 class Trees : public cgv::render::render_types {
   public:
+	struct TreeMesh {
+		std::vector<vec3> positions = {};
+		std::vector<vec3> normals = {};
+		std::vector<vec2> uvs = {};
+		std::vector<unsigned int> indices = {};
+
+		void clear() {
+			positions.clear();
+			normals.clear();
+			uvs.clear();
+			indices.clear();
+		}
+
+		void assign(std::vector<glm::vec3> &p, std::vector<glm::vec3> &n, std::vector<glm::vec2> &u,
+					std::vector<glm::ivec3> &i) {
+			positions.assign(reinterpret_cast<vec3 *>(p.data()), reinterpret_cast<vec3 *>(p.data() + p.size()));
+			normals.assign(reinterpret_cast<vec3 *>(n.data()), reinterpret_cast<vec3 *>(n.data() + n.size()));
+			uvs.assign(reinterpret_cast<vec2 *>(u.data()), reinterpret_cast<vec2 *>(u.data() + u.size()));
+			indices.assign(reinterpret_cast<unsigned int *>(i.data()),
+						   reinterpret_cast<unsigned int *>(i.data() + i.size()));
+		}
+	};
+
 	bool enabled = true;
 	bool showCubes = false;
 	bool showGrid = true;
 
   private:
-	cgv::render::shader_program tree_placement_compute_shader;
+	std::vector<vec3> positions = {
+		  {0.0, 0.0, 0.0},
+		  {1.0, 0.0, 0.0},
+		  {1.0, 1.0, 0.0},
+		  {0.0, 1.0, 0.0},
+	};
+	std::vector<vec2> texcoords = {
+		  {0.0, 1.0},
+		  {1.0, 1.0},
+		  {1.0, 0.0},
+		  {0.0, 0.0},
+	};
+	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+
+	cgv::render::shader_program tree_position_compute_shader;
 	cgv::render::texture tree_position_texture;
 	unsigned int treePositionTextureWidth = 32;
 	unsigned int treePositionTextureHeight = 32;
 
-	std::shared_ptr<VertexArray> generatedTreesVA = nullptr;
+	TreeMesh tree_mesh = {};
 	std::shared_ptr<Texture> barkTexture = nullptr;
 
 	int treeCount = 1024;

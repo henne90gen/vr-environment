@@ -1,0 +1,39 @@
+#version 330 core
+
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
+in vec4 position;
+in vec3 normal;
+in vec2 texcoord;
+
+out vec3 position_fs;
+out vec3 normal_fs;
+out vec2 uv_fs;
+
+uniform sampler2D position_texture;
+uniform bool has_position_texture = false;
+
+void main() {
+    vec3 positionOffset = vec3(0.0F);
+    if (has_position_texture){
+        ivec2 positionTextureSize = textureSize(position_texture, 0);
+        vec2 uv = vec2(0.0F, 0.0F);
+        uv.x = float(gl_InstanceID % positionTextureSize.x) / float(positionTextureSize.x);
+        uv.y = float(gl_InstanceID / positionTextureSize.y) / float(positionTextureSize.y);
+        positionOffset = texture(position_texture, uv).xyz;
+    }
+
+    vec4 viewPosition = get_modelview_matrix() * (vec4(positionOffset, 0.0F) + position);
+    position_fs = viewPosition.xyz;
+    gl_Position = get_projection_matrix() * viewPosition;
+    normal_fs = normal;
+    uv_fs = texcoord;
+}

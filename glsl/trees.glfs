@@ -1,0 +1,33 @@
+#version 330 core
+
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
+in vec3 position_fs;
+in vec3 normal_fs;
+in vec2 uv_fs;
+
+uniform vec3 flat_color = vec3(0.7, 0.2, 0.3);
+uniform sampler2D surface_texture;
+uniform bool has_surface_texture = false;
+
+layout (location = 0) out vec3 gPosition;
+layout (location = 1) out vec3 gNormal;
+layout (location = 2) out vec3 gAlbedoSpec;
+
+void main() {
+    gPosition = position_fs;
+    gNormal = normalize(get_normal_matrix() * normal_fs);
+    if (has_surface_texture) {
+        gAlbedoSpec = texture(surface_texture, uv_fs).rgb;
+    } else {
+        gAlbedoSpec = flat_color;
+    }
+}

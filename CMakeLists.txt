@@ -15,6 +15,7 @@ add_library(vr_env
 
         renderers/flat_color_renderer.cpp
         renderers/deferred_renderer.cpp
+        renderers/tree_renderer.cpp
 
         Trees.cpp
         Branch.cpp
@@ -33,5 +34,6 @@ target_link_libraries(vr_env PRIVATE
         opengl
         image
         cgv_media
-        cgv_gl)
+        cgv_gl
+        cmi_io)
 add_dependencies(vr_env cgv_viewer cg_fltk crg_grid crg_stereo_view)
