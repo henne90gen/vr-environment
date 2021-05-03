@@ -16,6 +16,7 @@ enum class DeferredRenderTarget {
 	POSITION = 1,
 	NORMAL = 2,
 	ALBEDO = 3,
+	IS_CLOUD = 4,
 };
 
 struct deferred_render_style : public cgv::render::surface_render_style {
@@ -23,6 +24,7 @@ struct deferred_render_style : public cgv::render::surface_render_style {
 	deferred_render_style() = default;
 
 	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
+	bool use_atmospheric_scattering = false;
 };
 
 /// renderer that supports point splatting

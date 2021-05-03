@@ -52,7 +52,8 @@ void main() {
         return;
     }
     if (render_target == 4) {
-        color = texture(gIsCloud, texcoord_fs);
+        vec4 temp = texture(gIsCloud, texcoord_fs);
+        color = vec4(temp.r, temp.r, temp.r, 1.0F);
         return;
     }
 
@@ -64,11 +65,19 @@ void main() {
     color = vec4(Diffuse, 1.0F);
 
     if (use_atmospheric_scattering) {
+        // TODO revisit atmospheric scattering open problems:
+        //  light direction
+        //  camera orientation
+
         if (CloudLighting) {
             vec2 uv = (texcoord_fs - vec2(0.5)) * 2.0;
             uv.x *= aspect_ratio;
             FragPos = normalize(vec3(uv, -1.0)) * 1e12;
         }
+
+        vec3 light_dir = light.FragmentToLightDir;
+        // TODO use actual light direction
+        light_dir = vec3(1.0, 0.0, 0.0);
 
         float lightPower = 30.0;
         vec3 cDir = FragPos;
@@ -79,7 +88,7 @@ void main() {
         length(cDir),
         camera_orientation,
         color.rgb,
-        normalize(light.FragmentToLightDir),
+        normalize(light_dir),
         vec3(lightPower));
 
         if (CloudLighting){

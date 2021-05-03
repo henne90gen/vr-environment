@@ -21,6 +21,7 @@ uniform bool has_surface_texture = false;
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedoSpec;
+layout (location = 3) out vec3 gIsCloud;
 
 void main() {
     gPosition = position_fs;
@@ -30,4 +31,5 @@ void main() {
     } else {
         gAlbedoSpec = flat_color;
     }
+    gIsCloud = vec3(0.0F);
 }
