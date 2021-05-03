@@ -39,7 +39,28 @@ bool clouds_renderer::enable(cgv::render::context &ctx) {
 	}
 
 	const auto &style = get_style<clouds_render_style>();
-	if (!ref_prog().set_uniform(ctx, "sky_color", style.surface_color)) {
+	if (!ref_prog().set_uniform(ctx, "cloud_blend", style.cloud_blend)) {
+		return false;
+	}
+
+	if (!ref_prog().set_uniform(ctx, "animation_speed", style.animation_speed)) {
+		return false;
+	}
+
+	if (!ref_prog().set_uniform(ctx, "animation_time", style.animation_time)) {
+		return false;
+	}
+
+	// FIXME find a better way to get this in to the shader (maybe through the model matrix somehow?)
+	if (!ref_prog().set_uniform(ctx, "clouds_position", style.clouds_position)) {
+		return false;
+	}
+
+	if (!ref_prog().set_uniform(ctx, "clouds_rotation", style.clouds_rotation)) {
+		return false;
+	}
+
+	if (!ref_prog().set_uniform(ctx, "clouds_scale", style.clouds_scale)) {
 		return false;
 	}
 
@@ -58,6 +79,11 @@ void clouds_renderer::draw(cgv::render::context &ctx, size_t start, size_t count
 }
 
 void clouds_renderer::render(cgv::render::context &ctx) {
+	const auto &style = get_style<clouds_render_style>();
+	if (!style.enabled) {
+		return;
+	}
+
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
 	set_indices(ctx, indices);
@@ -77,8 +103,14 @@ struct clouds_render_style_gui_creator : public cgv::gui::gui_creator {
 				const std::string &gui_type, const std::string &options, bool *) override {
 		if (value_type != cgv::type::info::type_name<clouds_render_style>::get_name())
 			return false;
-		auto *strs_ptr = reinterpret_cast<clouds_render_style *>(value_ptr);
-		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
+
+		auto *style = reinterpret_cast<clouds_render_style *>(value_ptr);
+		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(b, "Enabled", style->enabled);
+		p->add_member_control(b, "Cloud Blend", style->cloud_blend);
+		p->add_member_control(b, "Animation Speed", style->animation_speed);
+		p->add_member_control(b, "Animation Time", style->animation_time);
+
 		return true;
 	}
 };

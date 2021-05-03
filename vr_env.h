@@ -36,6 +36,7 @@ class vr_env : public cgv::base::node,
 
 	deferred_render_style deferred_style;
 	flat_color_render_style flat_color_style;
+	clouds_render_style clouds_style;
 
 	cgv::render::texture test_texture;
 

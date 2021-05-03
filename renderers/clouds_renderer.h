@@ -7,12 +7,22 @@ class clouds_renderer;
 //! reference to a singleton spline tube renderer that is shared among drawables
 /*! the second parameter is used for reference counting. Use +1 in your init method,
 	-1 in your clear method and default 0 argument otherwise. If internal reference
-	counter decreases to 0, singelton renderer is destructed. */
+	counter decreases to 0, singleton renderer is destructed. */
 extern clouds_renderer &ref_clouds_renderer(cgv::render::context &ctx, int ref_count_change = 0);
 
 struct clouds_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	clouds_render_style() = default;
+
+	bool enabled = true;
+	float cloud_blend = 0.1F;
+	float animation_speed = 1.0F;
+	float animation_time = 0.0F;
+
+	const float HALF_PI = 1.570796327;
+	vec3 clouds_position = vec3(0.0F, 200.0F, 0.0F);
+	vec3 clouds_rotation = vec3(HALF_PI, 0.0F, 0.0F);
+	vec3 clouds_scale = vec3(2000.0F, 2000.0F, 1.0F);
 };
 
 /// renderer that supports point splatting

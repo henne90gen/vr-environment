@@ -40,7 +40,7 @@ bool vr_env::init(cgv::render::context &ctx) {
 void vr_env::clear(cgv::render::context &ctx) {
 	ref_flat_color_renderer(ctx, -1);
 	ref_deferred_renderer(ctx, -1);
-    ref_clouds_renderer(ctx, -1);
+	ref_clouds_renderer(ctx, -1);
 	trees.clear(ctx);
 }
 
@@ -55,15 +55,16 @@ void vr_env::draw(cgv::render::context &ctx) {
 		trees.render(ctx, shaderToggles, terrainParams);
 
 		auto &clouds = ref_clouds_renderer(ctx);
+		clouds.set_render_style(clouds_style);
 		clouds.render(ctx);
 
-//		auto &flat_color = ref_flat_color_renderer(ctx);
-//		flat_color.set_render_style(flat_color_style);
-//		flat_color.set_position_array(ctx, positions);
-//		flat_color.set_texcoord_array(ctx, texcoords);
-//		flat_color.set_texture(ctx, trees.get_tree_placement_texture());
-//		flat_color.set_indices(ctx, indices);
-//		flat_color.render(ctx, 0, indices.size());
+		//		auto &flat_color = ref_flat_color_renderer(ctx);
+		//		flat_color.set_render_style(flat_color_style);
+		//		flat_color.set_position_array(ctx, positions);
+		//		flat_color.set_texcoord_array(ctx, texcoords);
+		//		flat_color.set_texture(ctx, trees.get_tree_placement_texture());
+		//		flat_color.set_indices(ctx, indices);
+		//		flat_color.render(ctx, 0, indices.size());
 	});
 }
 
@@ -84,6 +85,13 @@ void vr_env::create_gui() {
 		add_gui("flat color style", flat_color_style);
 		align("\b");
 		end_tree_node(flat_color_style);
+	}
+
+	if (begin_tree_node("clouds", clouds_style)) {
+		align("\a");
+		add_gui("clouds", clouds_style);
+		align("\b");
+		end_tree_node(clouds_style);
 	}
 
 	if (begin_tree_node("trees", trees)) {
