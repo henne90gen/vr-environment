@@ -11,6 +11,8 @@ class tree_renderer;
 extern tree_renderer &ref_tree_renderer(cgv::render::context &ctx, int ref_count_change = 0);
 
 struct tree_render_style : public cgv::render::surface_render_style {
+	int tree_count = 10;
+
 	/// construct with default values
 	tree_render_style() = default;
 };

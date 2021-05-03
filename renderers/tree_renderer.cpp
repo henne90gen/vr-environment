@@ -92,7 +92,9 @@ void tree_renderer::set_surface_texture(cgv::render::context &ctx, const cgv::re
 
 void tree_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
 						 uint32_t strip_restart_index) {
-	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
+    const auto &style = get_style<tree_render_style>();
+	draw_impl_instanced(ctx, cgv::render::PT_TRIANGLES, start, count, style.tree_count, use_strips, use_adjacency,
+						strip_restart_index);
 }
 
 cgv::reflect::extern_reflection_traits<tree_render_style, tree_render_style_reflect>
@@ -108,8 +110,11 @@ struct tree_render_style_gui_creator : public cgv::gui::gui_creator {
 				const std::string &gui_type, const std::string &options, bool *) override {
 		if (value_type != cgv::type::info::type_name<tree_render_style>::get_name())
 			return false;
-		auto *strs_ptr = reinterpret_cast<tree_render_style *>(value_ptr);
-		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
+		auto *style = reinterpret_cast<tree_render_style *>(value_ptr);
+		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(style));
+
+		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(b, "Tree count", style->tree_count);
 		return true;
 	}
 };
