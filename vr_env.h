@@ -11,6 +11,7 @@
 #include "Trees.h"
 #include "landscape/Landscape.h"
 
+#include "renderers/clouds_renderer.h"
 #include "renderers/deferred_renderer.h"
 #include "renderers/flat_color_renderer.h"
 

@@ -16,6 +16,7 @@ add_library(vr_env
         renderers/flat_color_renderer.cpp
         renderers/deferred_renderer.cpp
         renderers/tree_renderer.cpp
+        renderers/clouds_renderer.cpp
 
         Trees.cpp
         Branch.cpp

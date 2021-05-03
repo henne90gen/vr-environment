@@ -1,0 +1,26 @@
+#version 330 core
+
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
+in vec3 position;
+in vec3 normal;
+
+out vec3 position_fs;
+out vec3 normal_fs;
+out vec3 model_position_fs;
+
+void main() {
+    vec4 pos = get_modelview_matrix() * vec4(position, 1.0F);
+    position_fs = pos.xyz;
+    model_position_fs = position;
+    normal_fs = get_normal_matrix() * normal;
+    gl_Position = get_projection_matrix() * pos;
+}
