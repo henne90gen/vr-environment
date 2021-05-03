@@ -1,4 +1,3 @@
-
 /*
 The following interface is implemented in this shader:
 //***** begin interface of scatter.glsl ***********************************
@@ -7,7 +6,7 @@ vec3 start, // the start of the ray (the camera position)
 vec3 dir, // the direction of the ray (the camera vector)
 float max_dist, // the maximum distance the ray can travel (because something is in the way, like an object)
 
-vec4 cameraOrientation, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
+mat4 viewMatrix, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
 
 vec3 scene_color, // the color of the scene
 vec3 light_dir, // the direction of the light
@@ -26,7 +25,7 @@ vec3 start, // the start of the ray (the camera position)
 vec3 dir, // the direction of the ray (the camera vector)
 float max_dist, // the maximum distance the ray can travel (because something is in the way, like an object)
 
-vec4 cameraOrientation, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
+mat4 viewMatrix, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
 
 vec3 scene_color, // the color of the scene
 vec3 light_dir, // the direction of the light
@@ -50,8 +49,7 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     int steps_primary = 64;// the amount of steps along the 'primary' ray, more looks better but slower
     int steps_light = 4;// the amount of steps along the light ray, more looks better but slower
 
-
-    planet_position = rotate_vector(cameraOrientation, planet_position);
+    planet_position = (viewMatrix * vec4(planet_position, 1.0)).xyz;
 
     // add an offset to the camera position, so that the atmosphere is in the correct position
     start -= planet_position;

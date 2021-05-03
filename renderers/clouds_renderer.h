@@ -17,22 +17,19 @@ struct clouds_render_style : public cgv::render::surface_render_style {
 	bool enabled = true;
 	float cloud_blend = 0.1F;
 	float animation_speed = 1.0F;
-	float animation_time = 0.0F;
 
-	const float HALF_PI = 1.570796327;
 	vec3 clouds_position = vec3(0.0F, 200.0F, 0.0F);
-	vec3 clouds_rotation = vec3(HALF_PI, 0.0F, 0.0F);
-	vec3 clouds_scale = vec3(2000.0F, 2000.0F, 1.0F);
+	vec3 clouds_scale = vec3(2000.0F, 1.0F, 2000.0F);
 };
 
 /// renderer that supports point splatting
 class clouds_renderer : public cgv::render::surface_renderer {
   private:
 	std::vector<vec3> positions = {
-		  {-1.0, -1.0, 0.0},
-		  {1.0, -1.0, 0.0},
-		  {1.0, 1.0, 0.0},
-		  {-1.0, 1.0, 0.0},
+		  {-1.0, 0.0, -1.0},
+		  {1.0, 0.0, -1.0},
+		  {1.0, 0.0, 1.0},
+		  {-1.0, 0.0, 1.0},
 	};
 	std::vector<vec2> texcoords = {
 		  {0.0, 1.0},
@@ -41,6 +38,7 @@ class clouds_renderer : public cgv::render::surface_renderer {
 		  {0.0, 0.0},
 	};
 	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+	float animation_time = 0.0F;
 
   protected:
 	/// overload to allow instantiation of clouds_renderer

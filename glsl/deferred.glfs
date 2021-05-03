@@ -1,12 +1,22 @@
 #version 460
 
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
 //***** begin interface of scatter.glsl ***********************************
 vec3 calculate_scattering(
 vec3 start, // the start of the ray (the camera position)
 vec3 dir, // the direction of the ray (the camera vector)
 float max_dist, // the maximum distance the ray can travel (because something is in the way, like an object)
 
-vec4 cameraOrientation, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
+mat4 viewMatrix, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
 
 vec3 scene_color, // the color of the scene
 vec3 light_dir, // the direction of the light
@@ -26,7 +36,6 @@ uniform sampler2D gIsCloud;
 uniform int render_target = 0;
 uniform bool use_atmospheric_scattering = false;
 uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
-uniform vec4 camera_orientation;
 
 struct Light {
     vec3 FragmentToLightDir;
@@ -62,6 +71,13 @@ void main() {
     vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
     bool CloudLighting = texture(gIsCloud, texcoord_fs).r == 1.0F;
 
+    if (FragPos.x == 0.0 && FragPos.y == 0.0 && FragPos.z == 0.0) {
+        // position of the background, set this to something very far away
+        vec2 uv = (texcoord_fs - vec2(0.5)) * 2.0;
+        uv.x *= aspect_ratio;
+        FragPos = normalize(vec3(uv, -1.0)) * 1e12;
+    }
+
     color = vec4(Diffuse, 1.0F);
 
     if (use_atmospheric_scattering) {
@@ -86,7 +102,7 @@ void main() {
         vec3(0.0),
         normalize(cDir),
         length(cDir),
-        camera_orientation,
+        get_modelview_matrix(),
         color.rgb,
         normalize(light_dir),
         vec3(lightPower));

@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Camera.h"
-#include "Clouds.h"
 #include "Layers.h"
 #include "ShaderToggles.h"
 #include "Terrain.h"
@@ -61,8 +60,6 @@ class Landscape {
 	unsigned int ssaoNoiseTexture = 0;
 
 	Camera playerCamera = {};
-	Clouds sky = {};
-//	Trees trees = {};
 	Terrain terrain = {};
 	glm::vec3 atmosphere = glm::vec3(0.4F, 0.45F, 1.2F);
 

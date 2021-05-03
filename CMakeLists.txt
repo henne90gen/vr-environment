@@ -21,7 +21,6 @@ add_library(vr_env
         Trees.cpp
         Branch.cpp
 
-        landscape/Clouds.cpp
         landscape/Landscape.cpp
         landscape/Terrain.cpp
         landscape/TerrainParams.cpp)

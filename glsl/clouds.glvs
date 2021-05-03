@@ -17,8 +17,17 @@ out vec3 position_fs;
 out vec3 normal_fs;
 out vec3 model_position_fs;
 
+uniform vec3 clouds_position;
+uniform vec3 clouds_scale;
+
 void main() {
-    vec4 pos = get_modelview_matrix() * vec4(position, 1.0F);
+    mat4 offset;
+    offset[0] = vec4(clouds_scale.x, 0.0, 0.0, 0.0);
+    offset[1] = vec4(0.0, clouds_scale.y, 0.0, 0.0);
+    offset[2] = vec4(0.0, 0.0, clouds_scale.z, 0.0);
+    offset[3] = vec4(clouds_position, 1.0);
+
+    vec4 pos = get_modelview_matrix() * offset * vec4(position, 1.0F);
     position_fs = pos.xyz;
     model_position_fs = position;
     normal_fs = get_normal_matrix() * normal;

@@ -4,8 +4,8 @@ in vec3 position_fs;
 in vec3 normal_fs;
 in vec3 model_position_fs;
 
-uniform float animationTime;
-uniform float animationSpeed;
+uniform float animation_speed;
+uniform float animation_time;
 uniform float cloud_blend;
 
 layout (location = 0) out vec3 gPosition;
@@ -53,7 +53,7 @@ float cloudColor(vec2 uv_, float iTime) {
     const float skytint = 0.5;
 
     vec2 uv = uv_;
-    float time = iTime * animationSpeed;
+    float time = iTime * animation_speed;
     float q = fbm(uv * cloudscale * 0.5);
 
     // ridged noise shape
@@ -85,7 +85,7 @@ float cloudColor(vec2 uv_, float iTime) {
 
     // noise color
     float c = 0.0;
-    time = iTime * animationSpeed * 2.0;
+    time = iTime * animation_speed * 2.0;
     uv = uv_;
     uv *= cloudscale*2.0;
     uv -= q - time;
@@ -98,7 +98,7 @@ float cloudColor(vec2 uv_, float iTime) {
 
     // noise ridge color
     float c1 = 0.0;
-    time = iTime * animationSpeed * 3.0;
+    time = iTime * animation_speed * 3.0;
     uv = uv_;
     uv *= cloudscale*3.0;
     uv -= q - time;
@@ -129,8 +129,8 @@ float cloudColor(vec2 uv_, float iTime) {
 }
 
 void main() {
-    vec2 uv = model_position_fs.xy + 0.5F;
-    float color = cloudColor(uv, animationTime);
+    vec2 uv = model_position_fs.xz + 0.5F;
+    float color = cloudColor(uv, animation_time);
 
     gPosition = position_fs;
     gNormal = normalize(-normal_fs);

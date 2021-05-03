@@ -47,16 +47,13 @@ bool clouds_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	if (!ref_prog().set_uniform(ctx, "animation_time", style.animation_time)) {
+	animation_time += 0.01F;
+	if (!ref_prog().set_uniform(ctx, "animation_time", animation_time)) {
 		return false;
 	}
 
 	// FIXME find a better way to get this in to the shader (maybe through the model matrix somehow?)
 	if (!ref_prog().set_uniform(ctx, "clouds_position", style.clouds_position)) {
-		return false;
-	}
-
-	if (!ref_prog().set_uniform(ctx, "clouds_rotation", style.clouds_rotation)) {
 		return false;
 	}
 
@@ -109,7 +106,6 @@ struct clouds_render_style_gui_creator : public cgv::gui::gui_creator {
 		p->add_member_control(b, "Enabled", style->enabled);
 		p->add_member_control(b, "Cloud Blend", style->cloud_blend);
 		p->add_member_control(b, "Animation Speed", style->animation_speed);
-		p->add_member_control(b, "Animation Time", style->animation_time);
 
 		return true;
 	}
