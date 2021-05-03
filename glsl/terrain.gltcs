@@ -2,11 +2,11 @@
 
 layout (vertices = 3) out;
 
-in vec2 position_tcs_in[];
+in vec2 position_tcs[];
 
 uniform float tessellation;
 
-out vec2 position_tes_in[];
+out vec2 position_tes[];
 
 void main() {
     // TODO calculate tessellation with distance to camera
@@ -16,5 +16,5 @@ void main() {
     gl_TessLevelOuter[1] = tessellation;
     gl_TessLevelOuter[2] = tessellation;
 
-    position_tes_in[gl_InvocationID] = position_tcs_in[gl_InvocationID];
+    position_tes[gl_InvocationID] = position_tcs[gl_InvocationID];
 }

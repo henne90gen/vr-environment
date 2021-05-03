@@ -8,7 +8,7 @@ class deferred_renderer;
 //! reference to a singleton spline tube renderer that is shared among drawables
 /*! the second parameter is used for reference counting. Use +1 in your init method,
 	-1 in your clear method and default 0 argument otherwise. If internal reference
-	counter decreases to 0, singelton renderer is destructed. */
+	counter decreases to 0, singleton renderer is destructed. */
 extern deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change = 0);
 
 enum class DeferredRenderTarget {

@@ -1,0 +1,63 @@
+#version 330 core
+
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
+in vec2 uv_fs;
+in vec3 normal_fs;
+in vec3 model_position_fs;
+in float normalized_height_fs;
+
+layout (location = 0) out vec3 gPosition;
+layout (location = 1) out vec3 gNormal;
+layout (location = 2) out vec3 gAlbedoSpec;
+layout (location = 3) out vec3 gDoLighting;
+
+uniform mat3 normalMatrix;
+
+uniform float grassLevel;
+uniform float rockLevel;
+uniform float blur;
+
+uniform sampler2D grassTexture;
+uniform sampler2D dirtTexture;
+uniform sampler2D rockTexture;
+
+vec3 getSurfaceColor(float height) {
+    // TODO make color dependent on normal
+    const float grassDamper = 0.75F;
+    const float dirtDamper = 0.9F;
+    if (height < grassLevel-blur) {
+        vec3 grassColor = texture(grassTexture, uv_fs).rgb * grassDamper;
+        return grassColor;
+    } else if (height < grassLevel+blur) {
+        vec3 grassColor = texture(grassTexture, uv_fs).rgb * grassDamper;
+        vec3 dirtColor = texture(dirtTexture, uv_fs).rgb * dirtDamper;
+        float t = (height-(grassLevel-blur)) / (2.0F*blur);
+        return mix(grassColor, dirtColor, t);
+    } else if (height < rockLevel-blur){
+        vec3 dirtColor = texture(dirtTexture, uv_fs).rgb * dirtDamper;
+        return dirtColor;
+    } else if (height < rockLevel+blur) {
+        vec3 dirtColor = texture(dirtTexture, uv_fs).rgb * dirtDamper;
+        vec3 rockColor = texture(rockTexture, uv_fs).rgb;
+        float t = (height-(rockLevel-blur)) / (2.0F*blur);
+        return mix(dirtColor, rockColor, t);
+    } else {
+        vec3 rockColor = texture(rockTexture, uv_fs).rgb;
+        return rockColor;
+    }
+}
+
+void main() {
+    gPosition = model_position_fs;
+    gNormal = normalize(get_normal_matrix() * normal_fs);
+    gAlbedoSpec = getSurfaceColor(normalized_height_fs);
+}

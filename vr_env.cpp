@@ -24,6 +24,11 @@ bool vr_env::init(cgv::render::context &ctx) {
 		return false;
 	}
 
+	auto &terrain_renderer = ref_terrain_renderer(ctx, 1);
+	if (!terrain_renderer.init(ctx)) {
+		return false;
+	}
+
 	test_texture = cgv::render::texture();
 	if (!test_texture.create_from_image(ctx, "../../texture_test.bmp")) {
 		std::cerr << "failed to create test texture: " << test_texture.last_error << std::endl;
@@ -41,6 +46,7 @@ void vr_env::clear(cgv::render::context &ctx) {
 	ref_flat_color_renderer(ctx, -1);
 	ref_deferred_renderer(ctx, -1);
 	ref_clouds_renderer(ctx, -1);
+	ref_terrain_renderer(ctx, -1);
 	trees.clear(ctx);
 }
 
@@ -52,6 +58,11 @@ void vr_env::draw(cgv::render::context &ctx) {
 	deferred.render(ctx, [&]() {
 		ShaderToggles shaderToggles = {};
 		TerrainParams terrainParams = {};
+
+		auto &terrain = ref_terrain_renderer(ctx);
+		terrain.set_render_style(terrain_style);
+		terrain.render(ctx, terrainParams);
+
 		trees.render(ctx, shaderToggles, terrainParams);
 
 		auto &clouds = ref_clouds_renderer(ctx);

@@ -67,7 +67,14 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 		renderCubes(ctx, shaderToggles);
 	} else {
 		generateTree();
-		renderTrees(ctx, shaderToggles);
+
+		auto &tr = ref_tree_renderer(ctx);
+		tr.set_position_texture(ctx, tree_position_texture);
+		tr.set_position_array(ctx, tree_mesh.positions);
+		tr.set_normal_array(ctx, tree_mesh.normals);
+		tr.set_texcoord_array(ctx, tree_mesh.uvs);
+		tr.set_indices(ctx, tree_mesh.indices);
+		tr.render(ctx, 0, tree_mesh.indices.size());
 	}
 }
 
@@ -291,62 +298,6 @@ void Trees::generateTree() {
 		appendLeaf(positionOffset, indexOffset, positions, normals, indices, modelMatrix);
 #endif
 	}
-}
-
-void Trees::renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
-	auto &tr = ref_tree_renderer(ctx);
-#if 1
-	tr.set_position_texture(ctx, tree_position_texture);
-	tr.set_position_array(ctx, tree_mesh.positions);
-	tr.set_normal_array(ctx, tree_mesh.normals);
-	tr.set_texcoord_array(ctx, tree_mesh.uvs);
-	tr.set_indices(ctx, tree_mesh.indices);
-	tr.render(ctx, 0, tree_mesh.indices.size());
-#else
-	tr.set_position_array(ctx, positions);
-	//	tr.set_normal_array(ctx, normals);
-	tr.set_texcoord_array(ctx, texcoords);
-	tr.set_indices(ctx, indices);
-	tr.set_position_texture(ctx, tree_position_texture);
-	tr.render(ctx, 0, indices.size());
-#endif
-
-#if 0
-	generatedTreesVA->bind();
-	shader->bind();
-	generatedTreesVA->setShader(shader);
-	auto modelMatrix = glm::identity<glm::mat4>();
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(treeScale));
-	auto normalMatrix = glm::transpose(glm::inverse(glm::mat3(viewMatrix * modelMatrix)));
-	shader->setUniform("modelMatrix", modelMatrix);
-	shader->setUniform("viewMatrix", viewMatrix);
-	shader->setUniform("projectionMatrix", projectionMatrix);
-	shader->setUniform("normalMatrix", normalMatrix);
-	shader->setUniform("flatColor", glm::vec3(1.0F, 0.0F, 0.0F));
-	shader->setUniform("textureSampler", 0);
-	shader->setUniform("positionTexture", 1);
-
-	GL_Call(glActiveTexture(GL_TEXTURE0));
-	barkTexture->bind();
-
-	GL_Call(glActiveTexture(GL_TEXTURE1));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, treePositionTextureId));
-
-	if (shaderToggles.drawWireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-	}
-
-#if 1
-	GL_Call(glDrawElementsInstanced(GL_TRIANGLES, generatedTreesVA->getIndexBuffer()->getCount(), GL_UNSIGNED_INT,
-									nullptr, treeCount));
-#else
-	GL_Call(glDrawElements(GL_TRIANGLES, generatedTreesVA->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr));
-#endif
-
-	if (shaderToggles.drawWireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-	}
-#endif
 }
 
 void Trees::clear(cgv::render::context &ctx) {

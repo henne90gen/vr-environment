@@ -14,6 +14,7 @@
 #include "renderers/clouds_renderer.h"
 #include "renderers/deferred_renderer.h"
 #include "renderers/flat_color_renderer.h"
+#include "renderers/terrain_renderer.h"
 
 class vr_env : public cgv::base::node,
 			   public cgv::render::drawable,
@@ -37,6 +38,7 @@ class vr_env : public cgv::base::node,
 	deferred_render_style deferred_style;
 	flat_color_render_style flat_color_style;
 	clouds_render_style clouds_style;
+	terrain_render_style terrain_style;
 
 	cgv::render::texture test_texture;
 

@@ -1,5 +1,21 @@
 #version 430 core
 
+/*
+The following interface is implemented in this shader:
+//***** begin interface of noice_lib.glsl ***********************************
+const int MAX_NUM_NOISE_LAYERS = 15;
+struct NoiseLayer {
+    float frequency;
+    float amplitude;
+    bool enabled;
+};
+vec3 snoise2(vec2 P);
+vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
+in bool useFiniteDifferences, in float finiteDifference, in float power, in float bowlStrength, in float platformHeight,
+in int seed);
+//***** end interface of noice_lib.glsl ***********************************
+*/
+
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
     float frequency;

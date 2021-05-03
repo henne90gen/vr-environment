@@ -89,7 +89,6 @@ class Trees : public cgv::render::render_types {
 	void renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams);
 	void renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles);
 	void renderGrid(cgv::render::context &ctx);
-	void renderTrees(cgv::render::context &ctx, const ShaderToggles &shaderToggles);
 
 	void generateTree();
 };

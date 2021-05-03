@@ -18,9 +18,7 @@ layout (rgba32f, binding = 0) uniform image2D imgOutput;
 
 uniform float lodSize = 1000.0F;
 uniform float lodInnerSize = 100.0F;
-uniform float lod1Size;
-uniform float lod2Size;
-uniform int treeCount;
+//uniform int treeCount;
 
 uniform NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS];
 uniform int numNoiseLayers;
@@ -31,8 +29,8 @@ uniform float bowlStrength;
 uniform float platformHeight;
 uniform int seed;
 
-const int MAX_NUM_POSITIONS = 40;
-vec3 positions[MAX_NUM_POSITIONS];
+//const int MAX_NUM_POSITIONS = 40;
+//vec3 positions[MAX_NUM_POSITIONS];
 
 vec2 placementRandom(float seed) {
     vec2 pos = vec2(seed, seed);

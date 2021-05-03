@@ -93,7 +93,7 @@ void main() {
 
         vec3 light_dir = light.FragmentToLightDir;
         // TODO use actual light direction
-        light_dir = vec3(1.0, 0.0, 0.0);
+        light_dir = (get_modelview_matrix() * vec4(1.0, 0.0, 0.0, 0.0F)).xyz;
 
         float lightPower = 30.0;
         vec3 cDir = FragPos;

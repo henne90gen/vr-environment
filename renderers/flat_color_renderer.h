@@ -7,7 +7,7 @@ class flat_color_renderer;
 //! reference to a singleton spline tube renderer that is shared among drawables
 /*! the second parameter is used for reference counting. Use +1 in your init method,
 	-1 in your clear method and default 0 argument otherwise. If internal reference
-	counter decreases to 0, singelton renderer is destructed. */
+	counter decreases to 0, singleton renderer is destructed. */
 extern flat_color_renderer &ref_flat_color_renderer(cgv::render::context &ctx, int ref_count_change = 0);
 
 struct flat_color_render_style : public cgv::render::surface_render_style {
