@@ -10,8 +10,8 @@
 #include <memory>
 
 #include "Branch.h"
+#include "ShaderToggles.h"
 #include "TerrainParams.h"
-#include "landscape/ShaderToggles.h"
 
 class Trees : public cgv::render::render_types {
   public:

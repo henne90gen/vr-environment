@@ -9,7 +9,6 @@
 #include <cgv_gl/gl/mesh_render_info.h>
 
 #include "Trees.h"
-#include "landscape/Landscape.h"
 
 #include "renderers/clouds_renderer.h"
 #include "renderers/deferred_renderer.h"
