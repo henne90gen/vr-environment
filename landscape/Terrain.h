@@ -8,12 +8,6 @@
 #include "ShaderToggles.h"
 #include "TerrainParams.h"
 
-struct TerrainLevels {
-    float grassLevel = 0.4F;
-    float rockLevel = 1.0F;
-    float blur = 0.05F;
-};
-
 class Terrain {
     std::shared_ptr<Shader> terrainShader;
 
@@ -27,7 +21,7 @@ class Terrain {
     glm::vec3 modelPosition = glm::vec3(0.0F);
     glm::vec3 modelRotation = glm::vec3(0.0F);
 
-    TerrainLevels levels = {};
+//    TerrainLevels levels = {};
     float tessellation = 60.0F;
     float uvScaleFactor = 20.0F;
 

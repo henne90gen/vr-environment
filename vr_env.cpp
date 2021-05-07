@@ -84,7 +84,7 @@ void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx)
 void vr_env::create_gui() {
 	add_decorator("VR Environment", "heading", "level=2");
 
-	if (begin_tree_node("deferred style", deferred_style)) {
+	if (begin_tree_node("Deferred Rendering", deferred_style)) {
 		align("\a");
 		add_gui("deferred style", deferred_style);
 		align("\b");
@@ -98,14 +98,21 @@ void vr_env::create_gui() {
 		end_tree_node(flat_color_style);
 	}
 
-	if (begin_tree_node("clouds", clouds_style)) {
+    if (begin_tree_node("Terrain", terrain_style)) {
+        align("\a");
+        add_gui("terrain style", terrain_style);
+        align("\b");
+        end_tree_node(terrain_style);
+    }
+
+	if (begin_tree_node("Clouds", clouds_style)) {
 		align("\a");
 		add_gui("clouds", clouds_style);
 		align("\b");
 		end_tree_node(clouds_style);
 	}
 
-	if (begin_tree_node("trees", trees)) {
+	if (begin_tree_node("Trees", trees)) {
 		align("\a");
 		add_gui("Trees", trees);
 		align("\b");

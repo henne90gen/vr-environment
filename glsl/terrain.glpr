@@ -1,3 +1,4 @@
 files:terrain
 tess_evaluation_file:noise_lib.glsl
+tess_evaluation_file:view.glsl
 fragment_file:view.glsl

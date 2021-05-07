@@ -24,7 +24,7 @@ struct deferred_render_style : public cgv::render::surface_render_style {
 	deferred_render_style() = default;
 
 	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
-	bool use_atmospheric_scattering = false;
+	bool use_atmospheric_scattering = true;
 };
 
 /// renderer that supports point splatting

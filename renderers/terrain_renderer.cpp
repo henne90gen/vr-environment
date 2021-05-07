@@ -16,6 +16,14 @@ bool terrain_renderer::validate_attributes(const cgv::render::context &ctx) cons
 	return surface_renderer::validate_attributes(ctx);
 }
 
+void update_texture_settings(cgv::render::texture &texture) {
+	texture.min_filter = cgv::render::TF_LINEAR;
+	texture.mag_filter = cgv::render::TF_LINEAR;
+	texture.wrap_r = cgv::render::TW_REPEAT;
+	texture.wrap_s = cgv::render::TW_REPEAT;
+	texture.wrap_t = cgv::render::TW_REPEAT;
+}
+
 bool terrain_renderer::init(cgv::render::context &ctx) {
 	bool res = surface_renderer::init(ctx);
 	if (!ref_prog().is_created()) {
@@ -27,7 +35,23 @@ bool terrain_renderer::init(cgv::render::context &ctx) {
 
 	init_positions();
 
-	// TODO initialize textures here
+	update_texture_settings(grass_texture);
+	if (!grass_texture.create_from_image(ctx, "../../assets/textures/Ground037_1K_Color.png")) {
+		std::cerr << "failed to load grass texture: " << grass_texture.last_error << std::endl;
+		return false;
+	}
+
+	update_texture_settings(dirt_texture);
+	if (!dirt_texture.create_from_image(ctx, "../../assets/textures/Ground039_1K_Color.png")) {
+		std::cerr << "failed to load dirt texture: " << dirt_texture.last_error << std::endl;
+		return false;
+	}
+
+	update_texture_settings(rock_texture);
+	if (!rock_texture.create_from_image(ctx, "../../assets/textures/Ground022_1K_Color.png")) {
+		std::cerr << "failed to load rock texture: " << rock_texture.last_error << std::endl;
+		return false;
+	}
 
 	return res;
 }
@@ -43,17 +67,52 @@ bool terrain_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	const auto &style = get_style<terrain_render_style>();
-	if (!ref_prog().set_uniform(ctx, "flat_color", style.surface_color)) {
+	if (!grass_texture.enable(ctx, 0)) {
 		return false;
 	}
-	if (!ref_prog().set_uniform(ctx, "has_texture", has_texture)) {
+	if (!ref_prog().set_uniform(ctx, "grassTexture", 0)) {
 		return false;
 	}
-	if (!ref_prog().set_uniform(ctx, "texture_sampler", 0)) {
+
+	if (!dirt_texture.enable(ctx, 1)) {
 		return false;
 	}
-	return texture.enable(ctx, 0);
+	if (!ref_prog().set_uniform(ctx, "dirtTexture", 1)) {
+		return false;
+	}
+
+	if (!rock_texture.enable(ctx, 2)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "rockTexture", 2)) {
+		return false;
+	}
+
+	auto &style = get_style<terrain_render_style>();
+	if (!ref_prog().set_uniform(ctx, "tessellation", style.tessellation)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "uvScaleFactor", style.uv_scale_factor)) {
+		return false;
+	}
+
+	if (!ref_prog().set_uniform(ctx, "grassLevel", style.levels.grassLevel)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "rockLevel", style.levels.rockLevel)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "blur", style.levels.blur)) {
+		return false;
+	}
+
+	if (params == nullptr) {
+		return false;
+	}
+
+	params->set_shader_uniforms(ctx, ref_prog());
+
+	return true;
 }
 
 bool terrain_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }
@@ -62,21 +121,27 @@ bool terrain_render_style_reflect::self_reflect(cgv::reflect::reflection_handler
 	return rh.reflect_base(*static_cast<terrain_render_style *>(this));
 }
 
-void terrain_renderer::set_texture(cgv::render::context &ctx, const cgv::render::texture &t) {
-	has_texture = true;
-	texture = t;
-}
-
 void terrain_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
 							uint32_t strip_restart_index) {
-	draw_impl(ctx, cgv::render::PT_PATCHES, start, count, use_strips, use_adjacency, strip_restart_index);
+	draw_impl(ctx, cgv::render::PT_PATCHES, start, count, false, false, -1);
 }
 
 void terrain_renderer::render(cgv::render::context &ctx, const TerrainParams &terrainParams) {
+	params = &terrainParams;
 	set_position_array(ctx, custom_positions);
 	set_indices(ctx, custom_indices);
+
+	auto &style = get_style<terrain_render_style>();
+	if (style.wireframe) {
+		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	}
+
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	renderer::render(ctx, 0, custom_indices.size());
+
+	if (style.wireframe) {
+		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	}
 }
 
 void terrain_renderer::init_positions() {
@@ -95,16 +160,12 @@ void terrain_renderer::init_positions() {
 	int height = 10;
 	for (int row = 0; row < height; row++) {
 		for (int col = 0; col < width; col++) {
-			for (int i = 0; i < static_cast<int64_t>(quadVertices.size()); i++) {
-				float f = quadVertices[i];
-				if (i % 2 == 0) {
-					f += static_cast<float>(row);
-				} else {
-					f += static_cast<float>(col);
-				}
-				f -= 5.0F;
-				f *= 100.0F;
-				custom_positions.push_back(f);
+			for (int i = 0; i < static_cast<int64_t>(quadVertices.size() / 2); i++) {
+				vec2 v = {quadVertices[i * 2] + static_cast<float>(row),
+						  quadVertices[i * 2 + 1] + static_cast<float>(col)};
+				v -= 5.0F;
+				v *= 100.0F;
+				custom_positions.emplace_back(v);
 			}
 		}
 	}
@@ -135,8 +196,16 @@ struct terrain_render_style_gui_creator : public cgv::gui::gui_creator {
 				const std::string &gui_type, const std::string &options, bool *) override {
 		if (value_type != cgv::type::info::type_name<terrain_render_style>::get_name())
 			return false;
-		auto *strs_ptr = reinterpret_cast<terrain_render_style *>(value_ptr);
-		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(strs_ptr));
+
+		auto *style = reinterpret_cast<terrain_render_style *>(value_ptr);
+		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(b, "Wireframe", style->wireframe);
+		p->add_member_control(b, "Tessellation", style->tessellation);
+		p->add_member_control(b, "UV Scale Factor", style->uv_scale_factor);
+		p->add_member_control(b, "Grass Level", style->levels.grassLevel);
+		p->add_member_control(b, "Rock Level", style->levels.rockLevel);
+		p->add_member_control(b, "Level Blur", style->levels.blur);
+
 		return true;
 	}
 };

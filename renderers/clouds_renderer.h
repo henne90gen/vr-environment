@@ -14,7 +14,7 @@ struct clouds_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	clouds_render_style() = default;
 
-	bool enabled = true;
+	bool enabled = false;
 	float cloud_blend = 0.1F;
 	float animation_speed = 1.0F;
 

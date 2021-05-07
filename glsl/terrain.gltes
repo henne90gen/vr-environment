@@ -1,5 +1,15 @@
 #version 440 core
 
+//***** begin interface of view.glsl ***********************************
+mat4 get_modelview_matrix();
+mat4 get_projection_matrix();
+mat4 get_modelview_projection_matrix();
+mat4 get_inverse_modelview_matrix();
+mat4 get_inverse_modelview_projection_matrix();
+mat3 get_normal_matrix();
+mat3 get_inverse_normal_matrix();
+//***** end interface of view.glsl ***********************************
+
 //***** begin interface of noice_lib.glsl ***********************************
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
@@ -16,13 +26,8 @@ in int seed);
 layout (triangles, equal_spacing, cw) in;
 
 in vec2 position_tes[];
-in vec3 ev_tes[];
 
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
 uniform float uvScaleFactor;
-uniform vec3 cameraPosition;
 
 uniform NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS];
 uniform int numNoiseLayers;
@@ -51,9 +56,10 @@ void main() {
     bitangent_fs = vec3(0.0F, noise.z, 1.0F);
     normal_fs = -normalize(cross(tangent_fs, bitangent_fs));
 
-    vec4 position = viewMatrix * modelMatrix * vec4(pos.x, noise.x, pos.y, 1.0F);
+    vec4 position = get_modelview_matrix() * vec4(pos.x, noise.x, pos.y, 1.0F);
+
     model_position_fs = position.xyz;
-    gl_Position = projectionMatrix * position;
+    gl_Position = get_projection_matrix() * position;
 
     uv_fs = pos / uvScaleFactor;
 }

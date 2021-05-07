@@ -50,9 +50,9 @@ void Terrain::render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMat
 
 	terrainParams.setShaderUniforms(terrainShader);
 
-	terrainShader->setUniform("grassLevel", levels.grassLevel);
-	terrainShader->setUniform("rockLevel", levels.rockLevel);
-	terrainShader->setUniform("blur", levels.blur);
+//	terrainShader->setUniform("grassLevel", levels.grassLevel);
+//	terrainShader->setUniform("rockLevel", levels.rockLevel);
+//	terrainShader->setUniform("blur", levels.blur);
 
 	terrainShader->setUniform("showUVs", shaderToggles.showUVs);
 	terrainShader->setUniform("showNormals", shaderToggles.showNormals);
