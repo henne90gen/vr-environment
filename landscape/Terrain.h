@@ -5,8 +5,8 @@
 #include <gl/VertexArray.h>
 #include <glm/glm.hpp>
 
+#include "../TerrainParams.h"
 #include "ShaderToggles.h"
-#include "TerrainParams.h"
 
 class Terrain {
     std::shared_ptr<Shader> terrainShader;

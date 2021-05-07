@@ -2,7 +2,7 @@
 
 #include <cgv_gl/surface_renderer.h>
 
-#include "../landscape/TerrainParams.h"
+#include "../TerrainParams.h"
 
 struct TerrainLevels {
     float grassLevel = 0.4F;

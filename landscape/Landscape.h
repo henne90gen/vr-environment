@@ -6,8 +6,8 @@
 #include <gl/VertexArray.h>
 #include <memory>
 
+#include "../Layers.h"
 #include "Camera.h"
-#include "Layers.h"
 #include "ShaderToggles.h"
 #include "Terrain.h"
 

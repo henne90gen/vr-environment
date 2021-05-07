@@ -28,10 +28,8 @@ add_library(vr_env
 
         Trees.cpp
         Branch.cpp
+        TerrainParams.cpp
 
-        landscape/Landscape.cpp
-        landscape/Terrain.cpp
-        landscape/TerrainParams.cpp
         ${ST_FILES})
 set_target_properties(
         vr_env PROPERTIES
