@@ -17,6 +17,7 @@ enum class DeferredRenderTarget {
 	NORMAL = 2,
 	ALBEDO = 3,
 	IS_CLOUD = 4,
+	SSAO = 5,
 };
 
 struct deferred_render_style : public cgv::render::surface_render_style {
@@ -25,6 +26,7 @@ struct deferred_render_style : public cgv::render::surface_render_style {
 
 	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
 	bool use_atmospheric_scattering = true;
+	bool use_ambient_occlusion = true;
 };
 
 /// renderer that supports point splatting
@@ -37,10 +39,10 @@ class deferred_renderer : public cgv::render::surface_renderer {
 		  {-1.0, 1.0, 0.0},
 	};
 	std::vector<vec2> texcoords = {
-		  {0.0, 1.0},
-		  {1.0, 1.0},
-		  {1.0, 0.0},
 		  {0.0, 0.0},
+		  {1.0, 0.0},
+		  {1.0, 1.0},
+		  {0.0, 1.0},
 	};
 	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 

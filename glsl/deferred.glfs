@@ -32,9 +32,11 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gIsCloud;
+uniform sampler2D ssao;
 
 uniform int render_target = 0;
 uniform bool use_atmospheric_scattering = false;
+uniform bool use_ambient_occlusion = false;
 uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
 
 struct Light {
@@ -65,11 +67,21 @@ void main() {
         color = vec4(temp.r, temp.r, temp.r, 1.0F);
         return;
     }
+    if (render_target == 5) {
+        vec4 temp = texture(ssao, texcoord_fs);
+        color = vec4(temp.r, temp.r, temp.r, 1.0F);
+        return;
+    }
 
     vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
     vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
     vec3 Diffuse = texture(gAlbedo, texcoord_fs).rgb;
     bool CloudLighting = texture(gIsCloud, texcoord_fs).r == 1.0F;
+
+    float AmbientOcclusion = 1.0F;
+    if (use_ambient_occlusion) {
+        AmbientOcclusion = texture(ssao, texcoord_fs).r;
+    }
 
     if (FragPos.x == 0.0 && FragPos.y == 0.0 && FragPos.z == 0.0) {
         // position of the background, set this to something very far away

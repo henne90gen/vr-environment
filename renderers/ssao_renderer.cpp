@@ -1,5 +1,7 @@
 #include "ssao_renderer.h"
 
+#include <random>
+
 #include <cgv_gl/gl/gl_tools.h>
 
 ssao_renderer &ref_ssao_renderer(cgv::render::context &ctx, int ref_count_change) {
@@ -16,6 +18,8 @@ bool ssao_renderer::validate_attributes(const cgv::render::context &ctx) const {
 	return surface_renderer::validate_attributes(ctx);
 }
 
+float lerp(float a, float b, float f) { return a + f * (b - a); }
+
 bool ssao_renderer::init(cgv::render::context &ctx) {
 	bool res = surface_renderer::init(ctx);
 	if (!ref_prog().is_created()) {
@@ -24,7 +28,73 @@ bool ssao_renderer::init(cgv::render::context &ctx) {
 			return false;
 		}
 	}
-	return res;
+	if (!res) {
+		return false;
+	}
+
+	if (!fb.create(ctx)) {
+		std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	auto w = std::to_string(ctx.get_width());
+	auto h = std::to_string(ctx.get_height());
+	occlusion = cgv::render::texture("flt32[R](" + w + "," + h + ")", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
+	if (!occlusion.create(ctx, cgv::render::TT_2D, ctx.get_width(), ctx.get_height())) {
+		std::cerr << "Failed to create ambient occlusion texture: " << occlusion.last_error << std::endl;
+		return false;
+	}
+	if (!fb.attach(ctx, occlusion)) {
+		std::cerr << "Failed to attach ambient occlusion texture to ssao framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	if (!fb.is_complete(ctx)) {
+		std::cerr << "SSAO framebuffer is not complete: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	kernel.clear();
+	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
+	std::default_random_engine generator;
+	for (unsigned int i = 0; i < 64; ++i) {
+		vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+		sample.normalize();
+		sample *= randomFloats(generator);
+		float scale = float(i) / 64.0F;
+		// scale samples so that they're more aligned to center of kernel
+		scale = lerp(0.1F, 1.0F, scale * scale);
+		sample *= scale;
+		kernel.push_back(sample);
+	}
+
+	int width = 4;
+	int height = 4;
+	noise = cgv::render::texture(                                                       //
+		  "flt32[R,G,B](" + std::to_string(width) + "," + std::to_string(height) + ")", //
+		  cgv::render::TF_NEAREST, cgv::render::TF_NEAREST,                             //
+		  cgv::render::TW_REPEAT, cgv::render::TW_REPEAT, cgv::render::TW_REPEAT        //
+	);
+	if (!noise.create(ctx, cgv::render::TT_2D, width, height)) {
+		std::cerr << "Failed to create noise texture: " << noise.last_error << std::endl;
+		return false;
+	}
+
+	std::vector<vec3> noiseData;
+	for (int i = 0; i < width * height; i++) {
+		noiseData.emplace_back(                      //
+			  randomFloats(generator) * 2.0F - 1.0F, //
+			  randomFloats(generator) * 2.0F - 1.0F, //
+			  0.0F                                   //
+		);
+	}
+	if (!noise.enable(ctx)) {
+		std::cerr << "Failed to enable noise texture: " << noise.last_error << std::endl;
+		return false;
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, noiseData.data());
+
+	return true;
 }
 
 bool ssao_renderer::enable(cgv::render::context &ctx) {
@@ -40,6 +110,60 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 
 	glDisable(GL_BLEND);
 
+	if (!noise.enable(ctx, 0)) {
+		std::cerr << "Failed to enable noise texture: " << noise.last_error << std::endl;
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "texNoise", 0)) {
+		return false;
+	}
+
+	if (gPosition == nullptr || !gPosition->enable(ctx, 1)) {
+		std::cerr << "Failed to enable position texture: ";
+		if (gPosition == nullptr) {
+			std::cerr << "position texture is null" << std::endl;
+		} else {
+			std::cerr << gPosition->last_error << std::endl;
+		}
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gPosition", 1)) {
+		return false;
+	}
+
+	if (gNormal == nullptr || !gNormal->enable(ctx, 2)) {
+		std::cerr << "Failed to enable normal texture: ";
+		if (gNormal == nullptr) {
+			std::cerr << "normal texture is null" << std::endl;
+		} else {
+			std::cerr << gNormal->last_error << std::endl;
+		}
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gNormal", 2)) {
+		return false;
+	}
+
+	if (!fb.enable(ctx)) {
+		std::cerr << "Failed to enable ssao framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	for (unsigned int i = 0; i < kernel.size(); ++i) {
+		if (!ref_prog().set_uniform(ctx, "samples[" + std::to_string(i) + "]", kernel[i])) {
+			std::cerr << "Failed to set kernel value " << i << std::endl;
+			return false;
+		}
+	}
+	if (!ref_prog().set_uniform(ctx, "screenWidth", static_cast<float>(ctx.get_width()))) {
+		std::cerr << "Failed to set screen width" << std::endl;
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "screenHeight", static_cast<float>(ctx.get_height()))) {
+		std::cerr << "Failed to set screen height" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 
@@ -49,6 +173,13 @@ bool ssao_renderer::disable(cgv::render::context &ctx) {
 	}
 
 	glEnable(GL_BLEND);
+
+	if (!fb.disable(ctx)) {
+		std::cerr << "Failed to disable ssao framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 bool ssao_render_style_reflect::self_reflect(cgv::reflect::reflection_handler &rh) {
@@ -60,7 +191,9 @@ void ssao_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, 
 	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
 }
 
-void ssao_renderer::render(cgv::render::context &ctx) {
+void ssao_renderer::render(cgv::render::context &ctx, cgv::render::texture &gPos, cgv::render::texture &gNorm) {
+	this->gPosition = &gPos;
+	this->gNormal = &gNorm;
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
 	set_indices(ctx, indices);

@@ -14,9 +14,9 @@ in vec2 texcoord_fs;
 
 out float AmbientOcclusionFactor;
 
+uniform sampler2D texNoise;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
-uniform sampler2D texNoise;
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 const int kernelSize = 64;

@@ -45,13 +45,13 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 
 	const std::string ws = std::to_string(ctx.get_width());
 	const std::string hs = std::to_string(ctx.get_height());
-	gPosition = cgv::render::texture(                           //
-		  std::string("flt16[R,G,B,A](") + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE                         //
+	gPosition = cgv::render::texture(              //
+		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
 	if (!gPosition.create(ctx, cgv::render::TT_2D)) {
 		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
@@ -62,13 +62,13 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	gNormal = cgv::render::texture(                             //
-		  std::string("flt16[R,G,B,A](") + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE                         //
+	gNormal = cgv::render::texture(                //
+		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
 	if (!gNormal.create(ctx, cgv::render::TT_2D)) {
 		std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
@@ -79,13 +79,13 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	gAlbedo = cgv::render::texture(                             //
-		  std::string("uint8[R,G,B,A](") + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE                         //
+	gAlbedo = cgv::render::texture(                //
+		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
 	if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
 		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
@@ -97,13 +97,13 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 	}
 
 	// TODO this can be optimized by reducing the texture to a single channel
-	gIsCloud = cgv::render::texture(                            //
-		  std::string("uint8[R,G,B,A](") + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TF_NEAREST,                              //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE,                        //
-		  cgv::render::TW_CLAMP_TO_EDGE                         //
+	gIsCloud = cgv::render::texture(               //
+		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
 	if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
 		std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
@@ -171,11 +171,22 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	auto &ssao = ref_ssao_renderer(ctx);
+	if (!ssao.get_occlusion_texture().enable(ctx, 4)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "ssao", 4)) {
+		return false;
+	}
+
 	const auto &style = get_style<deferred_render_style>();
 	if (!ref_prog().set_uniform(ctx, "render_target", static_cast<int>(style.render_target))) {
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "use_atmospheric_scattering", style.use_atmospheric_scattering)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "use_ambient_occlusion", style.use_ambient_occlusion)) {
 		return false;
 	}
 
@@ -197,7 +208,7 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 	}
 
 	auto &ssao = ref_ssao_renderer(ctx);
-	ssao.render(ctx);
+	ssao.render(ctx, gPosition, gNormal);
 
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
@@ -243,10 +254,12 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 
 		auto *style = reinterpret_cast<deferred_render_style *>(value_ptr);
 		auto *b = dynamic_cast<cgv::base::base *>(p);
-		p->add_member_control(b, "render target", style->render_target, "dropdown",
-							  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4';tooltip='The final texture to "
-							  "draw to the screen.'");
+		p->add_member_control(
+			  b, "render target", style->render_target, "dropdown",
+			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4,SSAO=5';tooltip='The final texture to "
+			  "draw to the screen.'");
 		p->add_member_control(b, "use atmospheric scattering", style->use_atmospheric_scattering);
+		p->add_member_control(b, "use ambient occlusion", style->use_atmospheric_scattering);
 
 		return true;
 	}
