@@ -3,6 +3,7 @@
 #include <cgv_gl/gl/gl_tools.h>
 
 #include "../macros.h"
+#include "ssao_renderer.h"
 
 deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
@@ -28,6 +29,11 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 	}
 
 	if (!res) {
+		return false;
+	}
+
+	auto &ssao = ref_ssao_renderer(ctx, 1);
+	if (!ssao.init(ctx)) {
 		return false;
 	}
 
@@ -190,6 +196,9 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 		return;
 	}
 
+	auto &ssao = ref_ssao_renderer(ctx);
+	ssao.render(ctx);
+
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
 	set_indices(ctx, indices);
@@ -198,6 +207,7 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 	{
 		// NOTE: copying the depth buffer from the gBuffer to the main depth buffer, because the depth information is
 		// later used by the stereo view to allow scene navigation
+		// TODO this doesn't seem to be enough to make the scene navigation work without bugs
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, get_gl_id(gBuffer.handle));
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		int width = static_cast<int>(ctx.get_width());

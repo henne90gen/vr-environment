@@ -1,4 +1,4 @@
-#version 460 
+#version 330 core
 
 //***** begin interface of view.glsl ***********************************
 mat4 get_modelview_matrix();

@@ -20,11 +20,12 @@ shader_test("${CGV_DIR}"
 add_library(vr_env
         vr_env.cpp
 
-        renderers/flat_color_renderer.cpp
-        renderers/deferred_renderer.cpp
-        renderers/tree_renderer.cpp
         renderers/clouds_renderer.cpp
+        renderers/deferred_renderer.cpp
+        renderers/flat_color_renderer.cpp
+        renderers/ssao_renderer.cpp
         renderers/terrain_renderer.cpp
+        renderers/tree_renderer.cpp
 
         Trees.cpp
         Branch.cpp
