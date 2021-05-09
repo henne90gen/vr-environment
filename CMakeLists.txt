@@ -4,6 +4,8 @@ project(VREnvironment)
 
 set(BUILD_SHARED_LIBS ON)
 
+find_package(OpenMP REQUIRED)
+
 add_subdirectory(${CGV_DIR} ${CMAKE_BINARY_DIR}/cgv)
 add_subdirectory(vendor/glm)
 
@@ -39,6 +41,7 @@ set_target_properties(
 )
 
 target_link_libraries(vr_env PRIVATE
+        OpenMP::OpenMP_CXX
         opengl
         image
         cgv_media

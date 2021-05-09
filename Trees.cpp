@@ -186,39 +186,6 @@ void Trees::renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderTo
 #endif
 }
 
-void appendLeaf(int positionOffset, int indexOffset, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals,
-				std::vector<glm::ivec3> &indices, const glm::mat4 &modelMatrix) {
-	const std::array<glm::vec3, 11> leafVertices = {
-		  glm::vec3(-0.1F, 0.0F, 0.0F), //
-		  glm::vec3(0.1F, 0.0F, 0.0F),  //
-		  glm::vec3(0.1F, 0.0F, 1.0F),  //
-		  glm::vec3(-0.1F, 0.0F, 1.0F), //
-		  glm::vec3(-0.4F, 0.0F, 0.5F), //
-		  glm::vec3(-1.0F, 0.0F, 0.8F), //
-		  glm::vec3(-1.0F, 0.0F, 1.7F), //
-		  glm::vec3(0.0F, 0.0F, 2.5F),  //
-		  glm::vec3(1.0F, 0.0F, 1.7F),  //
-		  glm::vec3(1.0F, 0.0F, 0.8F),  //
-		  glm::vec3(0.4F, 0.0F, 0.5F),  //
-	};
-	const glm::vec3 quadNormal = {0.0F, 1.0F, 0.0F};
-
-	for (int i = 0; i < leafVertices.size(); i++) {
-		positions[positionOffset + i] = glm::vec3(modelMatrix * glm::vec4(leafVertices[i], 1.0));
-		normals[positionOffset + i] = glm::vec3(modelMatrix * glm::vec4(quadNormal, 0.0));
-	}
-
-	indices[indexOffset + 0] = glm::ivec3(positionOffset + 0, positionOffset + 1, positionOffset + 2);
-	indices[indexOffset + 1] = glm::ivec3(positionOffset + 0, positionOffset + 2, positionOffset + 3);
-	indices[indexOffset + 2] = glm::ivec3(positionOffset + 4, positionOffset + 3, positionOffset + 5);
-	indices[indexOffset + 3] = glm::ivec3(positionOffset + 5, positionOffset + 3, positionOffset + 6);
-	indices[indexOffset + 4] = glm::ivec3(positionOffset + 6, positionOffset + 3, positionOffset + 7);
-	indices[indexOffset + 5] = glm::ivec3(positionOffset + 7, positionOffset + 3, positionOffset + 2);
-	indices[indexOffset + 6] = glm::ivec3(positionOffset + 7, positionOffset + 2, positionOffset + 8);
-	indices[indexOffset + 7] = glm::ivec3(positionOffset + 8, positionOffset + 2, positionOffset + 9);
-	indices[indexOffset + 8] = glm::ivec3(positionOffset + 9, positionOffset + 2, positionOffset + 10);
-}
-
 void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::TreeMesh &tm, int positionOffset, int indexOffset) {
 	std::vector<glm::vec3> vertices = {};
 	std::vector<glm::vec3> sphereNormals = {};
@@ -235,10 +202,11 @@ void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::TreeMesh &tm, int posi
 		const auto &normal = sphereNormals[i];
 		tm.normals[positionOffset + i] = to_vec3(glm::vec3(modelMatrix * glm::vec4(normal, 0.0F)));
 
+		// TODO randomly rotate uv coordinates to make the leaves less uniform
 		auto uv = sphereUvs[i];
 		uv.x *= 0.3289;
 		uv.y *= 0.4358;
-		uv += glm::vec2(0.6711, 0);
+		uv += glm::vec2(0.6711, 0.5);
 		tm.uvs[positionOffset + i] = to_vec2(uv);
 	}
 
@@ -290,13 +258,8 @@ void Trees::generateTree() {
 	for (int i = 0; i < leafModelMatrices.size(); i++) {
 		const auto &modelMatrix = leafModelMatrices[i];
 		int positionOffset = leafPositionOffset + i * verticesPerLeaf;
-		int indexOffset = leafIndicesOffset + i * trianglesPerLeaf;
-#define USE_SPHERES_AS_LEAFS 1
-#if USE_SPHERES_AS_LEAFS
+		int indexOffset = leafIndicesOffset + i * trianglesPerLeaf * 3;
 		appendSphereLeaf(modelMatrix, tree_mesh, positionOffset, indexOffset);
-#else
-		appendLeaf(positionOffset, indexOffset, positions, normals, indices, modelMatrix);
-#endif
 	}
 }
 

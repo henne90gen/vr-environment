@@ -18,7 +18,7 @@ in float normalized_height_fs;
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedoSpec;
-layout (location = 3) out vec3 gDoLighting;
+layout (location = 3) out vec3 gIsCloud;
 
 uniform mat3 normalMatrix;
 
@@ -60,4 +60,5 @@ void main() {
     gPosition = model_position_fs;
     gNormal = normalize(get_normal_matrix() * normal_fs);
     gAlbedoSpec = getSurfaceColor(normalized_height_fs);
+    gIsCloud = vec3(0.0F);
 }

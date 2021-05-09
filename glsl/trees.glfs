@@ -26,10 +26,6 @@ layout (location = 3) out vec3 gIsCloud;
 void main() {
     gPosition = position_fs;
     gNormal = normalize(get_normal_matrix() * normal_fs);
-    if (has_surface_texture) {
-        gAlbedoSpec = texture(surface_texture, uv_fs).rgb;
-    } else {
-        gAlbedoSpec = flat_color;
-    }
+    gAlbedoSpec = texture(surface_texture, uv_fs).rgb;
     gIsCloud = vec3(0.0F);
 }
