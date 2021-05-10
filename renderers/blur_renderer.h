@@ -9,6 +9,10 @@ struct blur_render_style : public cgv::render::surface_render_style {
 
 /// renderer that allows blurring of a texture
 class blur_renderer : public cgv::render::surface_renderer {
+  private:
+	bool has_texture = false;
+	cgv::render::texture texture;
+
   protected:
 	/// overload to allow instantiation of blur_renderer
 	cgv::render::render_style *create_render_style() const override;

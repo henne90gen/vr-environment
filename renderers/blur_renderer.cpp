@@ -13,15 +13,21 @@ cgv::render::render_style *blur_renderer::create_render_style() const { return n
 
 bool blur_renderer::validate_attributes(const cgv::render::context &ctx) const {
 	const auto &strs = get_style<blur_render_style>();
-	return surface_renderer::validate_attributes(ctx);
+	if (!surface_renderer::validate_attributes(ctx)) {
+		return false;
+	}
+	if (!has_texture) {
+		std::cerr << "Missing texture!" << std::endl;
+		return false;
+	}
+	return true;
 }
 
 bool blur_renderer::init(cgv::render::context &ctx) {
 	bool res = surface_renderer::init(ctx);
 	if (!ref_prog().is_created()) {
 		if (!ref_prog().build_program(ctx, "blur.glpr", true)) {
-			std::cerr << "ERROR in blur_renderer::init() ... could not build program blur.glpr"
-					  << std::endl;
+			std::cerr << "ERROR in blur_renderer::init() ... could not build program blur.glpr" << std::endl;
 			return false;
 		}
 	}
@@ -39,7 +45,10 @@ bool blur_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	return true;
+	if (!ref_prog().set_uniform(ctx, "texture_sampler", 0)) {
+		return false;
+	}
+	return texture.enable(ctx, 0);
 }
 
 bool blur_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }
@@ -53,8 +62,8 @@ void blur_renderer::set_texture(cgv::render::context &ctx, const cgv::render::te
 	texture = t;
 }
 
-void blur_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips,
-							   bool use_adjacency, uint32_t strip_restart_index) {
+void blur_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
+						 uint32_t strip_restart_index) {
 	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
 }
 
@@ -77,5 +86,4 @@ struct blur_render_style_gui_creator : public cgv::gui::gui_creator {
 	}
 };
 
-cgv::gui::gui_creator_registration<blur_render_style_gui_creator>
-	  blur_rs_gc_reg("blur_render_style_gui_creator");
+cgv::gui::gui_creator_registration<blur_render_style_gui_creator> blur_rs_gc_reg("blur_render_style_gui_creator");
