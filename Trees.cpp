@@ -4,7 +4,6 @@
 #include <random>
 
 #include <Image.h>
-#include <ImageOps.h>
 #include <util/RenderUtils.h>
 
 #include <cgv_gl/box_wire_renderer.h>
@@ -34,6 +33,8 @@ bool Trees::init(cgv::render::context &ctx) {
 	}
 
 	initGrid();
+	initTreeMesh();
+	initCubeMesh();
 
 	if (!initComputeShader(ctx)) {
 		std::cerr << "failed to init tree placement compute shader" << std::endl;
@@ -41,16 +42,6 @@ bool Trees::init(cgv::render::context &ctx) {
 	}
 
 	return true;
-
-	// FIXME finish init code
-#if 0
-	barkTexture = std::make_shared<Texture>();
-
-	Image img = {};
-	if (ImageOps::load("./landscape_resources/assets/textures/bark_and_leafs_light.png", img)) {
-		img.applyToTexture(barkTexture);
-	}
-#endif
 }
 
 void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles, const TerrainParams &terrainParams) {
@@ -63,19 +54,18 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 
 	renderGrid(ctx);
 
+	auto &tr = ref_tree_renderer(ctx);
+	tr.set_position_texture(ctx, tree_position_texture);
+	auto &mesh = tree_mesh;
 	if (showCubes) {
-		renderCubes(ctx, shaderToggles);
-	} else {
-		generateTree();
-
-		auto &tr = ref_tree_renderer(ctx);
-		tr.set_position_texture(ctx, tree_position_texture);
-		tr.set_position_array(ctx, tree_mesh.positions);
-		tr.set_normal_array(ctx, tree_mesh.normals);
-		tr.set_texcoord_array(ctx, tree_mesh.uvs);
-		tr.set_indices(ctx, tree_mesh.indices);
-		tr.render(ctx, 0, tree_mesh.indices.size());
+		mesh = cube_mesh;
 	}
+
+	tr.set_position_array(ctx, mesh.positions);
+	tr.set_normal_array(ctx, mesh.normals);
+	tr.set_texcoord_array(ctx, mesh.uvs);
+	tr.set_indices(ctx, mesh.indices);
+	tr.render(ctx, 0, mesh.indices.size());
 }
 
 bool Trees::initComputeShader(cgv::render::context &ctx) {
@@ -156,37 +146,7 @@ void Trees::renderGrid(cgv::render::context &ctx) {
 	box_wire.render(ctx, 0, gridBoxes.size());
 }
 
-void Trees::renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles) {
-	// FIXME use box_renderer here
-
-#if 0
-	cubeVA->bind();
-	shader->bind();
-	cubeVA->setShader(shader);
-	auto modelMatrix = glm::identity<glm::mat4>();
-	shader->setUniform("modelMatrix", modelMatrix);
-	shader->setUniform("viewMatrix", viewMatrix);
-	shader->setUniform("projectionMatrix", projectionMatrix);
-	shader->setUniform("treeCount", treeCount);
-	shader->setUniform("positionTexture", 0);
-
-	GL_Call(glActiveTexture(GL_TEXTURE0));
-	GL_Call(glBindTexture(GL_TEXTURE_2D, treePositionTextureId));
-
-	if (shaderToggles.drawWireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-	}
-
-	GL_Call(glDrawElementsInstanced(GL_TRIANGLES, cubeVA->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr,
-									treeCount));
-
-	if (shaderToggles.drawWireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-	}
-#endif
-}
-
-void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::TreeMesh &tm, int positionOffset, int indexOffset) {
+void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::Mesh &tm, int positionOffset, int indexOffset) {
 	std::vector<glm::vec3> vertices = {};
 	std::vector<glm::vec3> sphereNormals = {};
 	std::vector<glm::vec2> sphereUvs = {};
@@ -219,7 +179,7 @@ void appendSphereLeaf(const glm::mat4 modelMatrix, Trees::TreeMesh &tm, int posi
 	}
 }
 
-void Trees::generateTree() {
+void Trees::initTreeMesh() {
 	std::vector<glm::mat4> leafModelMatrices = {};
 	{
 		std::vector<glm::vec3> positions = {};
@@ -261,6 +221,89 @@ void Trees::generateTree() {
 		int indexOffset = leafIndicesOffset + i * trianglesPerLeaf * 3;
 		appendSphereLeaf(modelMatrix, tree_mesh, positionOffset, indexOffset);
 	}
+}
+
+void Trees::initCubeMesh() {
+	static std::vector<glm::vec3> p = {
+		  // back
+		  {-0.5F, -0.5F, -0.5F}, // 0
+		  {-0.5F, 0.5F, -0.5F},  // 1
+		  {0.5F, 0.5F, -0.5F},   // 2
+		  {0.5F, -0.5F, -0.5F},  // 3
+
+		  // front
+		  {-0.5F, -0.5F, 0.5F}, // 4
+		  {0.5F, -0.5F, 0.5F},  // 5
+		  {0.5F, 0.5F, 0.5F},   // 6
+		  {-0.5F, 0.5F, 0.5F},  // 7
+
+		  // left
+		  {-0.5F, -0.5F, -0.5F}, // 8
+		  {-0.5F, -0.5F, 0.5F},  // 9
+		  {-0.5F, 0.5F, 0.5F},   // 10
+		  {-0.5F, 0.5F, -0.5F},  // 11
+
+		  // right
+		  {0.5F, -0.5F, 0.5F},  // 12
+		  {0.5F, -0.5F, -0.5F}, // 13
+		  {0.5F, 0.5F, -0.5F},  // 14
+		  {0.5F, 0.5F, 0.5F},   // 15
+
+		  // top
+		  {-0.5F, 0.5F, 0.5F},  // 16
+		  {0.5F, 0.5F, 0.5F},   // 17
+		  {0.5F, 0.5F, -0.5F},  // 18
+		  {-0.5F, 0.5F, -0.5F}, // 19
+
+		  // bottom
+		  {-0.5F, -0.5F, 0.5F},  // 20
+		  {-0.5F, -0.5F, -0.5F}, // 21
+		  {0.5F, -0.5F, -0.5F},  // 22
+		  {0.5F, -0.5F, 0.5F},   // 23
+	};
+	static std::vector<glm::vec3> n = {
+		  {0, 0, -1.0}, {0, 0, -1.0}, {0, 0, -1.0}, {0, 0, -1.0}, // back
+		  {0, 0, 1.0},  {0, 0, 1.0},  {0, 0, 1.0},  {0, 0, 1.0},  // front
+		  {-1.0, 0, 0}, {-1.0, 0, 0}, {-1.0, 0, 0}, {-1.0, 0, 0}, // left
+		  {1.0, 0, 0},  {1.0, 0, 0},  {1.0, 0, 0},  {1.0, 0, 0},  // right
+		  {0, 1.0, 0},  {0, 1.0, 0},  {0, 1.0, 0},  {0, 1.0, 0},  // top
+		  {0, -1.0, 0}, {0, -1.0, 0}, {0, -1.0, 0}, {0, -1.0, 0}, // bottom
+	};
+	std::vector<glm::vec2> uvs = {};
+	for (int i = 0; i < 6; i++) {
+		uvs.emplace_back(0.0, 1.0);
+		uvs.emplace_back(1.0, 1.0);
+		uvs.emplace_back(1.0, 0.0);
+		uvs.emplace_back(0.0, 0.0);
+	}
+	static std::vector<glm::ivec3> indices = {
+		  // front
+		  {0, 1, 2},
+		  {0, 2, 3},
+
+		  // back
+		  {4, 5, 6},
+		  {4, 6, 7},
+
+		  // left
+		  {8, 9, 10},
+		  {8, 10, 11},
+
+		  // right
+		  {12, 13, 14},
+		  {12, 14, 15},
+
+		  // top
+		  {16, 17, 18},
+		  {16, 18, 19},
+
+		  // bottom
+		  {20, 21, 22},
+		  {20, 22, 23},
+	};
+
+	cube_mesh.clear();
+	cube_mesh.assign(p, n, uvs, indices);
 }
 
 void Trees::clear(cgv::render::context &ctx) {

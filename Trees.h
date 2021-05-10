@@ -15,7 +15,7 @@
 
 class Trees : public cgv::render::render_types {
   public:
-	struct TreeMesh {
+	struct Mesh {
 		std::vector<vec3> positions = {};
 		std::vector<vec3> normals = {};
 		std::vector<vec2> uvs = {};
@@ -62,8 +62,8 @@ class Trees : public cgv::render::render_types {
 	unsigned int treePositionTextureWidth = 32;
 	unsigned int treePositionTextureHeight = 32;
 
-	TreeMesh tree_mesh = {};
-	std::shared_ptr<Texture> barkTexture = nullptr;
+    Mesh tree_mesh = {};
+    Mesh cube_mesh = {};
 
 	int treeCount = 1024;
 	float lodSize = 1000.0F;
@@ -85,10 +85,9 @@ class Trees : public cgv::render::render_types {
   private:
 	bool initComputeShader(cgv::render::context &ctx);
 	void initGrid();
+    void initTreeMesh();
+	void initCubeMesh();
 
 	void renderComputeShader(cgv::render::context &ctx, const TerrainParams &terrainParams);
-	void renderCubes(cgv::render::context &ctx, const ShaderToggles &shaderToggles);
 	void renderGrid(cgv::render::context &ctx);
-
-	void generateTree();
 };

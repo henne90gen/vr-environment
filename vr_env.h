@@ -39,6 +39,9 @@ class vr_env : public cgv::base::node,
 	clouds_render_style clouds_style;
 	terrain_render_style terrain_style;
 
+    ShaderToggles shaderToggles = {};
+    TerrainParams terrainParams = {};
+
 	cgv::render::texture test_texture;
 
 	Trees trees = {};
@@ -56,4 +59,5 @@ class vr_env : public cgv::base::node,
 	std::string get_type_name() const override;
 	void create_gui() override;
 	void on_set(void *member_ptr) override;
+	void generate_new_seed();
 };

@@ -56,9 +56,6 @@ void vr_env::draw(cgv::render::context &ctx) {
 	auto &deferred = ref_deferred_renderer(ctx);
 	deferred.set_render_style(deferred_style);
 	deferred.render(ctx, [&]() {
-		ShaderToggles shaderToggles = {};
-		TerrainParams terrainParams = {};
-
 		auto &terrain = ref_terrain_renderer(ctx);
 		terrain.set_render_style(terrain_style);
 		terrain.render(ctx, terrainParams);
@@ -98,12 +95,12 @@ void vr_env::create_gui() {
 		end_tree_node(flat_color_style);
 	}
 
-    if (begin_tree_node("Terrain", terrain_style)) {
-        align("\a");
-        add_gui("terrain style", terrain_style);
-        align("\b");
-        end_tree_node(terrain_style);
-    }
+	if (begin_tree_node("Terrain", terrain_style)) {
+		align("\a");
+		add_gui("terrain style", terrain_style);
+		align("\b");
+		end_tree_node(terrain_style);
+	}
 
 	if (begin_tree_node("Clouds", clouds_style)) {
 		align("\a");
@@ -118,6 +115,9 @@ void vr_env::create_gui() {
 		align("\b");
 		end_tree_node(trees);
 	}
+
+	add_member_control(this, "Seed", terrainParams.seed);
+	connect_copy(add_button("New Seed")->click, cgv::signal::rebind(this, &vr_env::generate_new_seed));
 }
 
 bool vr_env::handle(cgv::gui::event &e) { return false; }
@@ -130,6 +130,16 @@ void vr_env::on_set(void *member_ptr) {
 	update_member(member_ptr);
 	post_redraw();
 	std::cout << "redraw" << std::endl;
+}
+
+void vr_env::generate_new_seed() {
+	std::cout << "Generating new seed" << std::endl;
+	std::random_device rand_dev;
+	std::mt19937 generator(rand_dev());
+	std::uniform_int_distribution<int> distribution(0, 1000000);
+	terrainParams.seed = distribution(generator);
+	post_recreate_gui();
+	post_redraw();
 }
 
 cgv::base::object_registration<vr_env> vr_env_reg("vr_env"); // NOLINT(cert-err58-cpp)
