@@ -112,4 +112,4 @@ struct clouds_render_style_gui_creator : public cgv::gui::gui_creator {
 };
 
 cgv::gui::gui_creator_registration<clouds_render_style_gui_creator>
-	  flat_color_rs_gc_reg("clouds_render_style_gui_creator");
+	  clouds_rs_gc_reg("clouds_render_style_gui_creator");

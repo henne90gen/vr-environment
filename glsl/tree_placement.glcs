@@ -34,7 +34,9 @@ uniform int seed;
 
 vec2 placementRandom(float seed) {
     vec2 pos = vec2(seed, seed);
-    pos = vec2(snoise2(pos*pos+pos).x, snoise2(pos+pos).x);
+    vec3 n1 = snoise2(pos*pos+pos);
+    vec3 n2 = snoise2(pos+pos);
+    pos = vec2(n1.x, n2.x);
     pos += 1.0F;
     pos /= 2.0F;
 
