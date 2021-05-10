@@ -23,6 +23,7 @@ add_library(vr_env
         vr_env.cpp
 
         renderers/clouds_renderer.cpp
+        renderers/blur_renderer.cpp
         renderers/deferred_renderer.cpp
         renderers/flat_color_renderer.cpp
         renderers/ssao_renderer.cpp
