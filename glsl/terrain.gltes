@@ -19,8 +19,7 @@ struct NoiseLayer {
 };
 vec3 snoise2(vec2 P);
 vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
-in bool useFiniteDifferences, in float finiteDifference, in float power, in float bowlStrength, in float platformHeight,
-in int seed);
+in float power, in float bowlStrength, in float platformHeight, in int seed);
 //***** end interface of noice_lib.glsl ***********************************
 
 layout (triangles, equal_spacing, cw) in;
@@ -31,8 +30,6 @@ uniform float uvScaleFactor;
 
 uniform NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS];
 uniform int numNoiseLayers;
-uniform bool useFiniteDifferences;
-uniform float finiteDifference;
 uniform float power;
 uniform float bowlStrength;
 uniform float platformHeight;
@@ -50,7 +47,7 @@ void main() {
     pos     += gl_TessCoord.y * position_tes[1];
     pos     += gl_TessCoord.z * position_tes[2];
 
-    vec4 noise = generateHeight(pos, noiseLayers, numNoiseLayers, useFiniteDifferences, finiteDifference, power, bowlStrength, platformHeight, seed);
+    vec4 noise = generateHeight(pos, noiseLayers, numNoiseLayers, power, bowlStrength, platformHeight, seed);
     normalized_height_fs = noise.w;
     tangent_fs = vec3(1.0F, noise.y, 0.0F);
     bitangent_fs = vec3(0.0F, noise.z, 1.0F);

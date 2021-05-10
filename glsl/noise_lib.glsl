@@ -11,8 +11,7 @@ struct NoiseLayer {
 };
 vec3 snoise2(vec2 P);
 vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
-in bool useFiniteDifferences, in float finiteDifference, in float power, in float bowlStrength, in float platformHeight,
-in int seed);
+in float power, in float bowlStrength, in float platformHeight, in int seed);
 //***** end interface of noice_lib.glsl ***********************************
 */
 
@@ -184,7 +183,6 @@ void applyPlatform(inout vec3 noise, in float noiseMax, in vec2 pos, in float pl
 
 vec4 generateHeight(in vec2 pos,
 in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
-in bool useFiniteDifferences, in float finiteDifference,
 in float power, in float bowlStrength, in float platformHeight,
 in int seed
 ) {
@@ -200,22 +198,10 @@ in int seed
 
         float frequency = noiseLayers[i].frequency;
         float amplitude = noiseLayers[i].amplitude;
-
-        if (useFiniteDifferences) {
-            vec2 p = pos + seedOffset;
-            vec3 n0 = snoise2(p / frequency) * amplitude;
-            noise.x += n0.x;
-            float diff = finiteDifference;
-            vec3 n1 = snoise2((p + vec2(diff, 0.0F)) / frequency) * amplitude;
-            vec3 n2 = snoise2((p + vec2(0.0F, diff)) / frequency) * amplitude;
-            noise.y += (n0.x - n1.x) / -diff;
-            noise.z += (n0.x - n2.x) / -diff;
-        } else {
-            vec2 p = pos + seedOffset;
-            vec3 n = snoise2(p / frequency) * amplitude;
-            n.yz /= frequency;
-            noise += n;
-        }
+        vec2 p = pos + seedOffset;
+        vec3 n = snoise2(p / frequency) * amplitude;
+        n.yz /= frequency;
+        noise += n;
 
         noiseMin -= amplitude;
         noiseMax += amplitude;

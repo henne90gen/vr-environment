@@ -19,8 +19,6 @@ TerrainParams::TerrainParams() {
 void TerrainParams::showGui() {
 	// FIXME imgui
 #if 0
-    ImGui::Checkbox("Use Finite Differences", &useFiniteDifferences);
-    ImGui::DragFloat("Finite Difference", &finiteDifference, 0.001F);
     ImGui::DragFloat("Power", &power, 0.001F);
     ImGui::DragFloat("Bowl Strength", &bowlStrength, 0.1F);
     ImGui::SliderFloat("Platform Height", &platformHeight, 0.0F, 1.0F);
@@ -80,32 +78,15 @@ void TerrainParams::showLayersGui() {
 #endif
 }
 
-void TerrainParams::setShaderUniforms(const std::shared_ptr<Shader> &shader) const {
-	for (int i = 0; i < static_cast<int64_t>(noiseLayers.size()); i++) {
-		shader->setUniform("noiseLayers[" + std::to_string(i) + "].amplitude", noiseLayers[i].amplitude);
-		shader->setUniform("noiseLayers[" + std::to_string(i) + "].frequency", noiseLayers[i].frequency);
-		shader->setUniform("noiseLayers[" + std::to_string(i) + "].enabled", noiseLayers[i].enabled);
-	}
-	shader->setUniform("numNoiseLayers", static_cast<int>(noiseLayers.size()));
-	shader->setUniform("finiteDifference", finiteDifference);
-	shader->setUniform("useFiniteDifferences", useFiniteDifferences);
-	shader->setUniform("power", power);
-	shader->setUniform("bowlStrength", bowlStrength);
-	shader->setUniform("platformHeight", platformHeight);
-	shader->setUniform("seed", seed);
-}
-
 void TerrainParams::set_shader_uniforms(cgv::render::context &ctx, cgv::render::shader_program &program) const {
 	for (int i = 0; i < static_cast<int64_t>(noiseLayers.size()); i++) {
 		program.set_uniform(ctx, "noiseLayers[" + std::to_string(i) + "].amplitude", noiseLayers[i].amplitude);
 		program.set_uniform(ctx, "noiseLayers[" + std::to_string(i) + "].frequency", noiseLayers[i].frequency);
 		program.set_uniform(ctx, "noiseLayers[" + std::to_string(i) + "].enabled", noiseLayers[i].enabled);
 	}
-	program.set_uniform(ctx,"numNoiseLayers", static_cast<int>(noiseLayers.size()));
-	program.set_uniform(ctx,"finiteDifference", finiteDifference);
-	program.set_uniform(ctx,"useFiniteDifferences", useFiniteDifferences);
-	program.set_uniform(ctx,"power", power);
-	program.set_uniform(ctx,"bowlStrength", bowlStrength);
-	program.set_uniform(ctx,"platformHeight", platformHeight);
-	program.set_uniform(ctx,"seed", seed);
+	program.set_uniform(ctx, "numNoiseLayers", static_cast<int>(noiseLayers.size()));
+	program.set_uniform(ctx, "power", power);
+	program.set_uniform(ctx, "bowlStrength", bowlStrength);
+	program.set_uniform(ctx, "platformHeight", platformHeight);
+	program.set_uniform(ctx, "seed", seed);
 }
