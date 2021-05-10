@@ -18,6 +18,7 @@ enum class DeferredRenderTarget {
 	ALBEDO = 3,
 	IS_CLOUD = 4,
 	SSAO = 5,
+	SSAO_BLUR = 6,
 };
 
 struct deferred_render_style : public cgv::render::surface_render_style {
@@ -53,6 +54,8 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	cgv::render::texture gNormal;
 	cgv::render::texture gAlbedo;
 	cgv::render::texture gIsCloud;
+	cgv::render::texture ssao_texture;
+	cgv::render::texture blurred_ssao_texture;
 	cgv::render::render_buffer gDepth;
 
   protected:

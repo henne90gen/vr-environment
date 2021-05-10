@@ -3,6 +3,7 @@
 #include <cgv_gl/gl/gl_tools.h>
 
 #include "../macros.h"
+#include "blur_renderer.h"
 #include "ssao_renderer.h"
 
 deferred_renderer &ref_deferred_renderer(cgv::render::context &ctx, int ref_count_change) {
@@ -34,6 +35,11 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 
 	auto &ssao = ref_ssao_renderer(ctx, 1);
 	if (!ssao.init(ctx)) {
+		return false;
+	}
+
+	auto &blur = ref_blur_renderer(ctx, 1);
+	if (!blur.init(ctx)) {
 		return false;
 	}
 
@@ -171,11 +177,17 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	auto &ssao = ref_ssao_renderer(ctx);
-	if (!ssao.get_occlusion_texture().enable(ctx, 4)) {
+	if (!ssao_texture.enable(ctx, 4)) {
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "ssao", 4)) {
+		return false;
+	}
+
+	if (!blurred_ssao_texture.enable(ctx, 5)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "ssaoBlur", 5)) {
 		return false;
 	}
 
@@ -208,7 +220,11 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 	}
 
 	auto &ssao = ref_ssao_renderer(ctx);
-	ssao.render(ctx, gPosition, gNormal);
+	ssao.render(ctx, gPosition, gNormal, ssao_texture);
+
+	auto &blur = ref_blur_renderer(ctx);
+	blurred_ssao_texture.set_component_format(ssao_texture.get_component_format());
+	blur.render(ctx, ssao_texture, blurred_ssao_texture);
 
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
@@ -254,12 +270,13 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 
 		auto *style = reinterpret_cast<deferred_render_style *>(value_ptr);
 		auto *b = dynamic_cast<cgv::base::base *>(p);
-		p->add_member_control(
-			  b, "render target", style->render_target, "dropdown",
-			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4,SSAO=5';tooltip='The final texture to "
-			  "draw to the screen.'");
+		p->add_member_control(b, "render target", style->render_target, "dropdown",
+							  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4,SSAO=5,SSAO_BLUR=6';tooltip='"
+							  "The final texture to "
+							  "draw to the screen.'");
 		p->add_member_control(b, "use atmospheric scattering", style->use_atmospheric_scattering);
-		p->add_member_control(b, "use ambient occlusion", style->use_atmospheric_scattering);
+		p->add_member_control(b, "use ambient occlusion", style->use_ambient_occlusion);
+		p->add_member_control(b, "use aces film", style->use_aces_film);
 
 		return true;
 	}

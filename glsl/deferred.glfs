@@ -33,6 +33,7 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedo;
 uniform sampler2D gIsCloud;
 uniform sampler2D ssao;
+uniform sampler2D ssaoBlur;
 
 uniform int render_target = 0;
 uniform bool use_atmospheric_scattering = false;
@@ -72,6 +73,11 @@ void main() {
         color = vec4(temp.r, temp.r, temp.r, 1.0F);
         return;
     }
+    if (render_target == 6) {
+        vec4 temp = texture(ssaoBlur, texcoord_fs);
+        color = vec4(temp.r, temp.r, temp.r, 1.0F);
+        return;
+    }
 
     vec3 FragPos = texture(gPosition, texcoord_fs).xyz;
     vec3 Normal = normalize(texture(gNormal, texcoord_fs).xyz);
@@ -80,7 +86,7 @@ void main() {
 
     float AmbientOcclusion = 1.0F;
     if (use_ambient_occlusion) {
-        AmbientOcclusion = texture(ssao, texcoord_fs).r;
+        AmbientOcclusion = texture(ssaoBlur, texcoord_fs).r;
     }
 
     if (FragPos.x == 0.0 && FragPos.y == 0.0 && FragPos.z == 0.0) {

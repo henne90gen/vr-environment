@@ -15,7 +15,21 @@ cgv::render::render_style *ssao_renderer::create_render_style() const { return n
 
 bool ssao_renderer::validate_attributes(const cgv::render::context &ctx) const {
 	const auto &strs = get_style<ssao_render_style>();
-	return surface_renderer::validate_attributes(ctx);
+	if (!surface_renderer::validate_attributes(ctx)) {
+		return false;
+	}
+
+	if (gPosition == nullptr) {
+		std::cerr << "gPosition cannot be a nullptr" << std::endl;
+		return false;
+	}
+
+	if (gNormal == nullptr) {
+		std::cerr << "gNormal cannot be a nullptr" << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 float lerp(float a, float b, float f) { return a + f * (b - a); }
@@ -29,28 +43,6 @@ bool ssao_renderer::init(cgv::render::context &ctx) {
 		}
 	}
 	if (!res) {
-		return false;
-	}
-
-	if (!fb.create(ctx)) {
-		std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
-		return false;
-	}
-
-	auto w = std::to_string(ctx.get_width());
-	auto h = std::to_string(ctx.get_height());
-	occlusion = cgv::render::texture("flt32[R](" + w + "," + h + ")", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
-	if (!occlusion.create(ctx, cgv::render::TT_2D, ctx.get_width(), ctx.get_height())) {
-		std::cerr << "Failed to create ambient occlusion texture: " << occlusion.last_error << std::endl;
-		return false;
-	}
-	if (!fb.attach(ctx, occlusion)) {
-		std::cerr << "Failed to attach ambient occlusion texture to ssao framebuffer: " << fb.last_error << std::endl;
-		return false;
-	}
-
-	if (!fb.is_complete(ctx)) {
-		std::cerr << "SSAO framebuffer is not complete: " << fb.last_error << std::endl;
 		return false;
 	}
 
@@ -118,32 +110,47 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	if (gPosition == nullptr || !gPosition->enable(ctx, 1)) {
-		std::cerr << "Failed to enable position texture: ";
-		if (gPosition == nullptr) {
-			std::cerr << "position texture is null" << std::endl;
-		} else {
-			std::cerr << gPosition->last_error << std::endl;
-		}
+	if (!gPosition->enable(ctx, 1)) {
+		std::cerr << "Failed to enable position texture: " << gPosition->last_error << std::endl;
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "gPosition", 1)) {
 		return false;
 	}
 
-	if (gNormal == nullptr || !gNormal->enable(ctx, 2)) {
-		std::cerr << "Failed to enable normal texture: ";
-		if (gNormal == nullptr) {
-			std::cerr << "normal texture is null" << std::endl;
-		} else {
-			std::cerr << gNormal->last_error << std::endl;
-		}
+	if (!gNormal->enable(ctx, 2)) {
+		std::cerr << "Failed to enable normal texture: " << gNormal->last_error << std::endl;
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "gNormal", 2)) {
 		return false;
 	}
+	if (!fb.is_created()) {
+		if (!fb.create(ctx)) {
+			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
+			return false;
+		}
 
+		unsigned int width = gPosition->get_width();
+		unsigned int height = gPosition->get_height();
+		auto w = std::to_string(width);
+		auto h = std::to_string(height);
+		*ssao_texture =
+			  cgv::render::texture("flt32[R](" + w + "," + h + ")", cgv::render::TF_NEAREST, cgv::render::TF_NEAREST);
+		if (!ssao_texture->create(ctx, cgv::render::TT_2D, width, height)) {
+			std::cerr << "Failed to create ssao texture: " << ssao_texture->last_error << std::endl;
+			return false;
+		}
+		if (!fb.attach(ctx, *ssao_texture)) {
+			std::cerr << "Failed to attach ssao texture to ssao framebuffer: " << fb.last_error << std::endl;
+			return false;
+		}
+
+		if (!fb.is_complete(ctx)) {
+			std::cerr << "SSAO framebuffer is not complete: " << fb.last_error << std::endl;
+			return false;
+		}
+	}
 	if (!fb.enable(ctx)) {
 		std::cerr << "Failed to enable ssao framebuffer: " << fb.last_error << std::endl;
 		return false;
@@ -191,9 +198,11 @@ void ssao_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, 
 	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
 }
 
-void ssao_renderer::render(cgv::render::context &ctx, cgv::render::texture &gPos, cgv::render::texture &gNorm) {
-	this->gPosition = &gPos;
-	this->gNormal = &gNorm;
+void ssao_renderer::render(cgv::render::context &ctx, cgv::render::texture &_gPosition, cgv::render::texture &_gNormal,
+						   cgv::render::texture &_ssao_texture) {
+	this->gPosition = &_gPosition;
+	this->gNormal = &_gNormal;
+	this->ssao_texture = &_ssao_texture;
 	set_position_array(ctx, positions);
 	set_texcoord_array(ctx, texcoords);
 	set_indices(ctx, indices);

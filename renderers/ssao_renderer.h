@@ -26,13 +26,14 @@ class ssao_renderer : public cgv::render::surface_renderer {
 	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
 	cgv::render::frame_buffer fb;
-	cgv::render::texture occlusion;
+//	cgv::render::texture occlusion;
 	cgv::render::texture noise;
 
 	std::vector<vec3> kernel;
 
 	cgv::render::texture *gPosition;
 	cgv::render::texture *gNormal;
+	cgv::render::texture *ssao_texture;
 
   protected:
 	/// overload to allow instantiation of ssao_renderer
@@ -50,9 +51,7 @@ class ssao_renderer : public cgv::render::surface_renderer {
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
-	void render(cgv::render::context &ctx, cgv::render::texture &gPosition, cgv::render::texture &gNormal);
-
-	cgv::render::texture &get_occlusion_texture() { return occlusion; }
+	void render(cgv::render::context &ctx, cgv::render::texture &gPosition, cgv::render::texture &gNormal, cgv::render::texture &ssao_texture);
 };
 
 struct ssao_render_style_reflect : public ssao_render_style {

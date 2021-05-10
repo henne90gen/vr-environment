@@ -16,10 +16,17 @@ bool blur_renderer::validate_attributes(const cgv::render::context &ctx) const {
 	if (!surface_renderer::validate_attributes(ctx)) {
 		return false;
 	}
-	if (!has_texture) {
-		std::cerr << "Missing texture!" << std::endl;
+
+	if (texture_to_be_blurred == nullptr) {
+		std::cerr << "Texture to be blurred cannot be a nullptr" << std::endl;
 		return false;
 	}
+
+	if (blurred_texture == nullptr) {
+		std::cerr << "Blurred texture cannot be a nullptr" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 
@@ -31,7 +38,11 @@ bool blur_renderer::init(cgv::render::context &ctx) {
 			return false;
 		}
 	}
-	return res;
+	if (!res) {
+		return false;
+	}
+
+	return true;
 }
 
 bool blur_renderer::enable(cgv::render::context &ctx) {
@@ -45,26 +56,74 @@ bool blur_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!fb.is_created()) {
+		if (!fb.create(ctx)) {
+			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
+			return false;
+		}
+
+		unsigned int width = texture_to_be_blurred->get_width();
+		unsigned int height = texture_to_be_blurred->get_height();
+		if (!blurred_texture->create(ctx, cgv::render::TT_2D, width, height)) {
+			std::cerr << "Failed to create blurred texture: " << blurred_texture->last_error << std::endl;
+			return false;
+		}
+		if (!fb.attach(ctx, *blurred_texture)) {
+			std::cerr << "Failed to attach blurred texture to blur framebuffer: " << fb.last_error << std::endl;
+			return false;
+		}
+
+		if (!fb.is_complete(ctx)) {
+			std::cerr << "Blur framebuffer is not complete: " << fb.last_error << std::endl;
+			return false;
+		}
+	}
+
+	if (!fb.enable(ctx)) {
+		std::cerr << "Failed to enable blur framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
 	if (!ref_prog().set_uniform(ctx, "texture_sampler", 0)) {
 		return false;
 	}
-	return texture.enable(ctx, 0);
+	if (!texture_to_be_blurred->enable(ctx, 0)) {
+		return false;
+	}
+
+	return true;
 }
 
-bool blur_renderer::disable(cgv::render::context &ctx) { return surface_renderer::disable(ctx); }
+bool blur_renderer::disable(cgv::render::context &ctx) {
+	if (!surface_renderer::disable(ctx)) {
+		return false;
+	}
+
+	if (!fb.disable(ctx)) {
+		std::cerr << "Failed to disable blur framebuffer: " << fb.last_error << std::endl;
+		return false;
+	}
+
+	return true;
+}
 
 bool blur_render_style_reflect::self_reflect(cgv::reflect::reflection_handler &rh) {
 	return rh.reflect_base(*static_cast<blur_render_style *>(this));
 }
 
-void blur_renderer::set_texture(cgv::render::context &ctx, const cgv::render::texture &t) {
-	has_texture = true;
-	texture = t;
-}
-
 void blur_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
 						 uint32_t strip_restart_index) {
 	draw_impl(ctx, cgv::render::PT_TRIANGLES, start, count, use_strips, use_adjacency, strip_restart_index);
+}
+
+void blur_renderer::render(cgv::render::context &ctx, cgv::render::texture &_texture_to_be_blurred,
+						   cgv::render::texture &_blurred_texture) {
+	this->texture_to_be_blurred = &_texture_to_be_blurred;
+	this->blurred_texture = &_blurred_texture;
+	set_position_array(ctx, positions);
+	set_texcoord_array(ctx, texcoords);
+	set_indices(ctx, indices);
+	renderer::render(ctx, 0, indices.size());
 }
 
 cgv::reflect::extern_reflection_traits<blur_render_style, blur_render_style_reflect>

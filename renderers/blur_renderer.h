@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cgv/render/frame_buffer.h>
+#include <cgv/render/texture.h>
 #include <cgv_gl/surface_renderer.h>
 
 struct blur_render_style : public cgv::render::surface_render_style {
@@ -10,8 +12,24 @@ struct blur_render_style : public cgv::render::surface_render_style {
 /// renderer that allows blurring of a texture
 class blur_renderer : public cgv::render::surface_renderer {
   private:
-	bool has_texture = false;
-	cgv::render::texture texture;
+	std::vector<vec3> positions = {
+		  {-1.0, -1.0, 0.0},
+		  {1.0, -1.0, 0.0},
+		  {1.0, 1.0, 0.0},
+		  {-1.0, 1.0, 0.0},
+	};
+	std::vector<vec2> texcoords = {
+		  {0.0, 0.0},
+		  {1.0, 0.0},
+		  {1.0, 1.0},
+		  {0.0, 1.0},
+	};
+	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+
+	cgv::render::frame_buffer fb;
+
+	cgv::render::texture *texture_to_be_blurred = nullptr;
+	cgv::render::texture *blurred_texture = nullptr;
 
   protected:
 	/// overload to allow instantiation of blur_renderer
@@ -29,7 +47,8 @@ class blur_renderer : public cgv::render::surface_renderer {
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
-	void set_texture(cgv::render::context &ctx, const cgv::render::texture &t);
+	void render(cgv::render::context &ctx, cgv::render::texture &texture_to_be_blurred,
+				cgv::render::texture &blurred_texture);
 };
 
 struct blur_render_style_reflect : public blur_render_style {
