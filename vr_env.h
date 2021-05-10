@@ -39,8 +39,8 @@ class vr_env : public cgv::base::node,
 	clouds_render_style clouds_style;
 	terrain_render_style terrain_style;
 
-    ShaderToggles shaderToggles = {};
-    TerrainParams terrainParams = {};
+	ShaderToggles shaderToggles = {};
+	TerrainParams terrainParams = {};
 
 	cgv::render::texture test_texture;
 
@@ -60,4 +60,5 @@ class vr_env : public cgv::base::node,
 	void create_gui() override;
 	void on_set(void *member_ptr) override;
 	void generate_new_seed();
+	void add_new_noise_layer();
 };

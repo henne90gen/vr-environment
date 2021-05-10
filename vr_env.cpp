@@ -118,6 +118,28 @@ void vr_env::create_gui() {
 
 	add_member_control(this, "Seed", terrainParams.seed);
 	connect_copy(add_button("New Seed")->click, cgv::signal::rebind(this, &vr_env::generate_new_seed));
+	add_member_control(this, "Steepness", terrainParams.power);
+	add_member_control(this, "Bowl Strength", terrainParams.bowlStrength);
+	add_member_control(this, "Platform Height", terrainParams.platformHeight);
+
+	if (begin_tree_node_void("Noise Layers", this)) {
+		align("\a");
+		for (int i = 0; i < static_cast<int>(terrainParams.noiseLayers.size()); i++) {
+			const auto enabledLabel = "Enabled " + std::to_string(i);
+			add_member_control(this, enabledLabel, terrainParams.noiseLayers[i].enabled);
+
+			const auto frequencyLabel = "Frequency " + std::to_string(i);
+			add_member_control(this, frequencyLabel, terrainParams.noiseLayers[i].frequency);
+
+			const auto amplitudeLabel = "Amplitude " + std::to_string(i);
+			add_member_control(this, amplitudeLabel, terrainParams.noiseLayers[i].amplitude);
+		}
+
+		connect_copy(add_button("Add Noise Layer")->click, cgv::signal::rebind(this, &vr_env::add_new_noise_layer));
+
+		align("\a");
+		end_tree_node_void(this);
+	}
 }
 
 bool vr_env::handle(cgv::gui::event &e) { return false; }
@@ -129,15 +151,19 @@ void vr_env::on_set(void *member_ptr) {
 	// sure any changes to the render styles ar being applied
 	update_member(member_ptr);
 	post_redraw();
-	std::cout << "redraw" << std::endl;
 }
 
 void vr_env::generate_new_seed() {
-	std::cout << "Generating new seed" << std::endl;
 	std::random_device rand_dev;
 	std::mt19937 generator(rand_dev());
 	std::uniform_int_distribution<int> distribution(0, 1000000);
 	terrainParams.seed = distribution(generator);
+	post_recreate_gui();
+	post_redraw();
+}
+
+void vr_env::add_new_noise_layer() {
+	terrainParams.noiseLayers.emplace_back();
 	post_recreate_gui();
 	post_redraw();
 }

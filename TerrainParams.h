@@ -19,8 +19,5 @@ struct TerrainParams {
 
 	TerrainParams();
 
-	void showGui();
-	void showLayersGui();
-
 	void set_shader_uniforms(cgv::render::context &ctx, cgv::render::shader_program &program) const;
 };
