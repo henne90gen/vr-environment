@@ -53,31 +53,6 @@ void vr_env::clear(cgv::render::context &ctx) {
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
 
 void vr_env::draw(cgv::render::context &ctx) {
-	auto enabled_lights = ctx.get_nr_enabled_light_sources();
-	//	for (int i = 0; i < enabled_lights; i++) {
-	//		auto handle = ctx.get_enabled_light_source_handle(i);
-	//		ctx.remove_light_source(handle);
-	//	}
-	//
-	//	auto light = cgv::media::illum::light_source();
-	//	light.set_type(cgv::media::illum::LT_DIRECTIONAL);
-	//	light.set_position(vec3(0, 1, 0));
-	//	light.set_emission(rgb(1, 1, 1));
-	//	light.set_ambient_scale(0.1);
-	//	ctx.add_light_source(light);
-
-	enabled_lights = ctx.get_nr_enabled_light_sources();
-	for (int i = 0; i < enabled_lights; i++) {
-		auto handle = ctx.get_enabled_light_source_handle(i);
-		auto &l = ctx.get_light_source(handle);
-		std::cout << "Light " << i << std::endl;
-		std::cout << "  Type:          " << l.get_type() << std::endl;
-		std::cout << "  Position:      " << l.get_position() << std::endl;
-		std::cout << "  Emission:      " << l.get_emission() << std::endl;
-		std::cout << "  Ambient Scale: " << l.get_ambient_scale() << std::endl;
-		std::cout << std::endl;
-	}
-
 	auto &deferred = ref_deferred_renderer(ctx);
 	deferred.set_render_style(deferred_style);
 	deferred.render(ctx, [&]() {

@@ -34,22 +34,24 @@ vec3 light_dir, // the direction of the light
 vec3 light_intensity// how bright the light is, affects the brightness of the atmosphere
 ) {
     float planet_radius = 371e3;// the radius of the planet (used to be 6371e3)
+    planet_radius = 6371e3;// the radius of the planet
     float atmo_radius = 471e3;// the radius of the atmosphere (used to be 6471e3)
-    vec3 planet_position = vec3(0.0, -(planet_radius+10), 0.0);// the position of the planet
+    atmo_radius = 6471e3;// the radius of the atmosphere
+    vec3 planet_position = vec3(0.0, -(planet_radius+100), 0.0);// the position of the planet
 
     vec3 beta_ray = vec3(5.5e-6, 13.0e-6, 22.4e-6);// the amount rayleigh scattering scatters the colors (for earth: causes the blue atmosphere)
     vec3 beta_mie = vec3(21e-6);// the amount mie scattering scatters colors
     vec3 beta_absorption = vec3(2.04e-5, 4.97e-5, 1.95e-6);// how much air is absorbed
-    vec3 beta_ambient = vec3(0.0);// the amount of scattering that always occurs, can help make the back side of the atmosphere a bit brighter
-    float g = 0.7;// the direction mie scatters the light in (like a cone). closer to -1 means more towards a single direction
+    vec3 beta_ambient = vec3(0.0, 0.0, 0.0);// the amount of scattering that always occurs, can help make the back side of the atmosphere a bit brighter
+    float g = 0.76;// the direction mie scatters the light in (like a cone). closer to -1 means more towards a single direction
 
     float height_ray = 8e3;// how high do you have to go before there is no rayleigh scattering?
     float height_mie = 1.2e3;// the same, but for mie
     float height_absorption = 30e3;// the height at which the most absorption happens
-    float absorption_falloff = 3e3;// how fast the absorption falls off from the absorption height
+    float absorption_falloff = 4e3;// how fast the absorption falls off from the absorption height
 
     int steps_primary = 64;// the amount of steps along the 'primary' ray, more looks better but slower
-    int steps_light = 4;// the amount of steps along the light ray, more looks better but slower
+    int steps_light = 8;// the amount of steps along the light ray, more looks better but slower
 
     planet_position = (viewMatrix * vec4(planet_position, 1.0)).xyz;
 
@@ -63,7 +65,9 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     float d = (b * b) - 4.0 * a * c;
 
     // stop early if there is no intersect
-    if (d < 0.0) return scene_color;
+    if (d < 0.0) {
+        return scene_color;
+    }
 
     // calculate the ray length
     vec2 ray_length = vec2(
@@ -72,7 +76,10 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     );
 
     // if the ray did not hit the atmosphere, return a black color
-    if (ray_length.x > ray_length.y) return scene_color;
+    if (ray_length.x > ray_length.y) {
+        return scene_color;
+    }
+
     // prevent the mie glow from appearing if there's an object in front of the camera
     bool allow_mie = max_dist > ray_length.y;
     // make sure the ray is no longer than allowed
@@ -188,4 +195,22 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     + phase_mie * beta_mie * total_mie// mie
     + opt_i.x * beta_ambient// and ambient
     ) * light_intensity + scene_color * opacity;// now make sure the background is rendered correctly
+}
+
+vec4 calculate_scattering_eye(
+vec3 position, // the position of the scene geometry
+mat4 view_matrix, // HACK we are using the camera orientation to position the planet correctly, since the given start position and direction are in camera space
+vec4 scene_color, // the color of the scene
+vec3 light_dir, // the direction of the light
+vec3 light_intensity// how bright the light is, affects the brightness of the atmosphere
+) {
+    return vec4(calculate_scattering(
+    vec3(0),
+    normalize(position),
+    length(position),
+    view_matrix,
+    scene_color.rgb,
+    light_dir,
+    light_intensity
+    ), 1.0);
 }
