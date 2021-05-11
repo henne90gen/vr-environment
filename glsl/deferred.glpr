@@ -1,4 +1,9 @@
 files:deferred
 vertex_file:screen_quad.glvs
-fragment_file:view.glsl
 fragment_file:scatter.glsl
+fragment_file:view.glsl
+
+fragment_file:brdf.glsl
+fragment_file:lights.glsl
+fragment_file:side.glsl
+fragment_file:surface.glsl

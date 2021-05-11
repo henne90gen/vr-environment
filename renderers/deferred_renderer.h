@@ -19,6 +19,7 @@ enum class DeferredRenderTarget {
 	IS_CLOUD = 4,
 	SSAO = 5,
 	SSAO_BLUR = 6,
+	TEST = 7,
 };
 
 struct deferred_render_style : public cgv::render::surface_render_style {
