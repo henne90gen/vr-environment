@@ -5,7 +5,7 @@
 clouds_renderer &ref_clouds_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
 	static clouds_renderer r;
-	r.manage_singelton(ctx, "clouds_renderer", ref_count, ref_count_change);
+	r.manage_singleton(ctx, "clouds_renderer", ref_count, ref_count_change);
 	return r;
 }
 

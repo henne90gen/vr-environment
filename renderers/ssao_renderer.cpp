@@ -7,7 +7,7 @@
 ssao_renderer &ref_ssao_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
 	static ssao_renderer r;
-	r.manage_singelton(ctx, "ssao_renderer", ref_count, ref_count_change);
+	r.manage_singleton(ctx, "ssao_renderer", ref_count, ref_count_change);
 	return r;
 }
 

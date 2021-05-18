@@ -5,7 +5,7 @@
 flat_color_renderer &ref_flat_color_renderer(cgv::render::context &ctx, int ref_count_change) {
 	static int ref_count = 0;
 	static flat_color_renderer r;
-	r.manage_singelton(ctx, "flat_color_renderer", ref_count, ref_count_change);
+	r.manage_singleton(ctx, "flat_color_renderer", ref_count, ref_count_change);
 	return r;
 }
 
