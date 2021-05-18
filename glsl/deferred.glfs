@@ -84,7 +84,8 @@ uniform bool use_atmospheric_scattering = false;
 uniform bool use_ambient_occlusion = false;
 uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
 
-vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color, int side, float ambient_occlusion) {
+vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color, float ambient_occlusion) {
+    int side = 0;
     Material M = get_material();
     M.ambient_occlusion = ambient_occlusion;
     update_material_color_and_transparency(M.diffuse_reflectance, M.transparency, side, color);
@@ -139,19 +140,18 @@ void main() {
     }
 
     if (position.x == 0.0 && position.y == 0.0 && position.z == 0.0) {
-        // position of the background, set this to something very far away
+        // set position of the background to something very far away
         vec2 uv = (texcoord_fs - vec2(0.5)) * 2.0;
         uv.x *= aspect_ratio;
         position = normalize(vec3(uv, -1.0)) * 1e12;
+        // deep space is black o.o
+        color = vec4(0.0);
+    } else {
+        color = compute_reflected_appearance_custom(position, normal, diffuse, AmbientOcclusion);
     }
-
-    color = compute_reflected_appearance_custom(position, normal, diffuse, 0, AmbientOcclusion);
 
     int num_lights = get_nr_light_sources();
     if (use_atmospheric_scattering && num_lights > 0) {
-        // TODO revisit atmospheric scattering open problems:
-        //  sky turns black when looking straight up
-
         if (CloudLighting) {
             vec2 uv = (texcoord_fs - vec2(0.5)) * 2.0;
             uv.x *= aspect_ratio;
@@ -160,17 +160,10 @@ void main() {
 
         // NOTE: simply using the first light as the sun
         // TODO the first light might not be a directional light...
-        LightSource light = get_light_source(0);
+        LightSource light = get_light_source(1);
         vec3 light_dir = light.position;
-
-        float lightPower = 30.0;
-        // TODO use atmosphere settings for this scattering function as well
-        color = calculate_scattering_eye(
-        position,
-        get_modelview_matrix(),
-        color,
-        normalize(light_dir),
-        vec3(lightPower));
+        vec3 lightPower = vec3(30.0);
+        color = calculate_scattering_eye(position, get_modelview_matrix(), color, normalize(light_dir), lightPower);
 
         if (CloudLighting){
             color.rgb = mix(color.rgb, vec3(1.0F), diffuse.r);
