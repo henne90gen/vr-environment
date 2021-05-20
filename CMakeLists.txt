@@ -34,7 +34,8 @@ add_library(vr_env
         Branch.cpp
         TerrainParams.cpp
 
-        ${ST_FILES})
+        ${ST_FILES}
+        ${SHADERS})
 set_target_properties(
         vr_env PROPERTIES
         CXX_STANDARD 17
@@ -48,4 +49,4 @@ target_link_libraries(vr_env PRIVATE
         cgv_media
         cgv_gl
         cmi_io)
-add_dependencies(vr_env cgv_viewer cg_fltk crg_grid crg_stereo_view)
+add_dependencies(vr_env cgv_viewer cg_fltk crg_light crg_grid crg_stereo_view)

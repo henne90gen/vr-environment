@@ -85,6 +85,7 @@ uniform bool use_ambient_occlusion = false;
 uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
 
 vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color, float ambient_occlusion) {
+    // TODO check that ambient occlusion is applied correctly
     int side = 0;
     Material M = get_material();
     M.ambient_occlusion = ambient_occlusion;
