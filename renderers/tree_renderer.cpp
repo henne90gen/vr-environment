@@ -71,6 +71,13 @@ bool tree_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!ref_prog().set_uniform(ctx, "tree_count", style.tree_count)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "rotation", style.rotation)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -92,7 +99,7 @@ void tree_renderer::set_surface_texture(cgv::render::context &ctx, const cgv::re
 
 void tree_renderer::draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips, bool use_adjacency,
 						 uint32_t strip_restart_index) {
-    const auto &style = get_style<tree_render_style>();
+	const auto &style = get_style<tree_render_style>();
 	draw_impl_instanced(ctx, cgv::render::PT_TRIANGLES, start, count, style.tree_count, use_strips, use_adjacency,
 						strip_restart_index);
 }
@@ -114,7 +121,8 @@ struct tree_render_style_gui_creator : public cgv::gui::gui_creator {
 		p->add_gui("surface_render_style", *static_cast<cgv::render::surface_render_style *>(style));
 
 		auto *b = dynamic_cast<cgv::base::base *>(p);
-		p->add_member_control(b, "Tree count", style->tree_count);
+		p->add_member_control(b, "Tree Count", style->tree_count);
+		p->add_member_control(b, "Tree Rotation", style->rotation);
 		return true;
 	}
 };

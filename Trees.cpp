@@ -1,13 +1,11 @@
 #include "Trees.h"
 
-#include <array>
 #include <random>
 
 #include <cgv_gl/box_wire_renderer.h>
 
 #include "Sphere.h"
 #include "macros.h"
-#include "renderers/tree_renderer.h"
 #include "utils.h"
 
 bool Trees::init(cgv::render::context &ctx) {
@@ -46,6 +44,7 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 	renderGrid(ctx);
 
 	auto &tr = ref_tree_renderer(ctx);
+	tr.set_render_style(tree_style);
 	tr.set_position_texture(ctx, tree_position_texture);
 	auto &mesh = tree_mesh;
 	if (showCubes) {
@@ -315,6 +314,7 @@ struct trees_gui_creator : public cgv::gui::gui_creator {
 		p->add_member_control(b, "Enabled", trees_ptr->enabled);
 		p->add_member_control(b, "Show Placement Grid", trees_ptr->showGrid);
 		p->add_member_control(b, "Show Cubes instead of Trees", trees_ptr->showCubes);
+		p->add_gui("tree style", trees_ptr->tree_style);
 		return true;
 	}
 };

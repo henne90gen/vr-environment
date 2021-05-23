@@ -1,5 +1,7 @@
 #version 330 core
 
+#define M_PI 3.1415926535897932384626433832795
+
 //***** begin interface of view.glsl ***********************************
 mat4 get_modelview_matrix();
 mat4 get_projection_matrix();
@@ -20,6 +22,8 @@ out vec2 uv_fs;
 
 uniform sampler2D position_texture;
 uniform bool has_position_texture = false;
+uniform int tree_count;
+uniform float rotation = 0.0F;
 
 void main() {
     vec3 positionOffset = vec3(0.0F);
@@ -31,7 +35,18 @@ void main() {
         positionOffset = texture(position_texture, uv).xyz;
     }
 
-    vec4 viewPosition = get_modelview_matrix() * (vec4(positionOffset, 0.0F) + position);
+    float alpha = (float(gl_InstanceID) / float(tree_count)) * 2.0 * M_PI;
+    if (rotation != 0.0F) {
+        alpha = rotation;
+    }
+    mat4 rotationMatrix;
+    rotationMatrix[0] = vec4(cos(alpha), 0.0, -sin(alpha), 0.0);
+    rotationMatrix[1] = vec4(0.0, 1.0, 0.0, 0.0);
+    rotationMatrix[2] = vec4(sin(alpha), 0.0, cos(alpha), 0.0);
+    rotationMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec4 rotatedPosition = rotationMatrix * position;
+    vec4 viewPosition = get_modelview_matrix() * (vec4(positionOffset, 0.0F) + rotatedPosition);
     position_fs = viewPosition.xyz;
     gl_Position = get_projection_matrix() * viewPosition;
     normal_fs = normal;
