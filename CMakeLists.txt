@@ -9,8 +9,8 @@ find_package(OpenMP REQUIRED)
 add_subdirectory(${CGV_DIR} ${CMAKE_BINARY_DIR}/cgv)
 add_subdirectory(vendor/glm)
 
-add_subdirectory(opengl)
-add_subdirectory(image)
+#add_subdirectory(opengl)
+#add_subdirectory(image)
 
 file(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "glsl/*.gl*")
 shader_test("${CGV_DIR}"
@@ -32,6 +32,7 @@ add_library(vr_env
 
         Trees.cpp
         Branch.cpp
+        Sphere.cpp
         TerrainParams.cpp
 
         ${ST_FILES}
@@ -44,8 +45,9 @@ set_target_properties(
 
 target_link_libraries(vr_env PRIVATE
         OpenMP::OpenMP_CXX
-        opengl
-        image
+#        opengl
+#        image
+        glm
         cgv_media
         cgv_gl
         cmi_io)

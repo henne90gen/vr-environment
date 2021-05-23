@@ -3,21 +3,12 @@
 #include <array>
 #include <random>
 
-#include <Image.h>
-#include <util/RenderUtils.h>
-
 #include <cgv_gl/box_wire_renderer.h>
 
+#include "Sphere.h"
 #include "macros.h"
 #include "renderers/tree_renderer.h"
 #include "utils.h"
-
-// FIXME shader
-//  DEFINE_DEFAULT_SHADERS(landscape_Tree)
-//  DEFINE_DEFAULT_SHADERS(landscape_Texture)
-//  DEFINE_DEFAULT_SHADERS(landscape_FlatColor)
-//  DEFINE_SHADER(landscape_NoiseLib)
-//  DEFINE_SHADER(landscape_TreeComp)
 
 bool Trees::init(cgv::render::context &ctx) {
 	auto &box_wire = ref_box_wire_renderer(ctx, 1);
@@ -87,7 +78,7 @@ bool Trees::initComputeShader(cgv::render::context &ctx) {
 		std::cerr << "failed to create tree position texture" << std::endl;
 		return false;
 	}
-	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
+	glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
 	return true;
 }
@@ -103,9 +94,9 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 	tree_position_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
 	terrainParams.set_shader_uniforms(ctx, tree_position_compute_shader);
 
-	GL_Call(glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
-	GL_Call(glDispatchCompute(4, 4, 1));
-	GL_Call(glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT));
+	glBindImageTexture(0, get_gl_id(tree_position_texture.handle), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	glDispatchCompute(4, 4, 1);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	if (!tree_position_compute_shader.disable(ctx)) {
 		std::cout << "failed to disable tree position compute shader" << std::endl;

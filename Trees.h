@@ -4,9 +4,6 @@
 #include <cgv/render/render_types.h>
 #include <cgv/render/shader_program.h>
 
-#include <gl/Shader.h>
-#include <gl/VertexArray.h>
-
 #include <memory>
 
 #include "Branch.h"

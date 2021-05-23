@@ -5,14 +5,14 @@
 
 TerrainParams::TerrainParams() {
 	noiseLayers = {
-		  NoiseLayer(450.0F, 20.0F), //
-		  NoiseLayer(300.0F, 15.0F), //
-		  NoiseLayer(200.0F, 10.0F), //
-		  NoiseLayer(150.0F, 7.5F),  //
-		  NoiseLayer(100.0F, 5.0F),  //
-		  NoiseLayer(80.0F, 4.0F),   //
-		  NoiseLayer(30.0F, 2.0F),   //
-		  NoiseLayer(7.5F, 0.75F),   //
+		  NoiseLayer(1.0F / 450.0F, 20.0F), //
+		  NoiseLayer(1.0F / 300.0F, 15.0F), //
+		  NoiseLayer(1.0F / 200.0F, 10.0F), //
+		  NoiseLayer(1.0F / 150.0F, 7.5F),  //
+		  NoiseLayer(1.0F / 100.0F, 5.0F),  //
+		  NoiseLayer(1.0F / 80.0F, 4.0F),   //
+		  NoiseLayer(1.0F / 30.0F, 2.0F),   //
+		  NoiseLayer(1.0F / 7.5F, 0.75F),   //
 	};
 }
 

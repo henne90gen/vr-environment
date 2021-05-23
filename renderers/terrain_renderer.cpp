@@ -133,14 +133,14 @@ void terrain_renderer::render(cgv::render::context &ctx, const TerrainParams &te
 
 	auto &style = get_style<terrain_render_style>();
 	if (style.wireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	renderer::render(ctx, 0, custom_indices.size());
 
 	if (style.wireframe) {
-		GL_Call(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 }
 

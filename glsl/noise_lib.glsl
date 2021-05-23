@@ -199,8 +199,8 @@ in int seed
         float frequency = noiseLayers[i].frequency;
         float amplitude = noiseLayers[i].amplitude;
         vec2 p = pos + seedOffset;
-        vec3 n = snoise2(p / frequency) * amplitude;
-        n.yz /= frequency;
+        vec3 n = snoise2(p * frequency) * amplitude;
+        n.yz *= frequency;
         noise += n;
 
         noiseMin -= amplitude;

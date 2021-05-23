@@ -6,8 +6,6 @@
 #include <cgv/render/context.h>
 #include <cgv/render/shader_program.h>
 
-#include <gl/Shader.h>
-
 #include "Layers.h"
 
 struct TerrainParams {
