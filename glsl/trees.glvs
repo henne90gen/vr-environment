@@ -12,6 +12,10 @@ mat3 get_normal_matrix();
 mat3 get_inverse_normal_matrix();
 //***** end interface of view.glsl ***********************************
 
+//***** begin interface of noice_lib.glsl ***********************************
+float gold_noise(in float seed);
+//***** end interface of noice_lib.glsl ***********************************
+
 in vec4 position;
 in vec3 normal;
 in vec2 texcoord;
@@ -35,7 +39,7 @@ void main() {
         positionOffset = texture(position_texture, uv).xyz;
     }
 
-    float alpha = (float(gl_InstanceID) / float(tree_count)) * 2.0 * M_PI;
+    float alpha = gold_noise(float(gl_InstanceID) / float(tree_count)) * 2.0 * M_PI;
     if (rotation != 0.0F) {
         alpha = rotation;
     }
@@ -45,7 +49,14 @@ void main() {
     rotationMatrix[2] = vec4(sin(alpha), 0.0, cos(alpha), 0.0);
     rotationMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-    vec4 rotatedPosition = rotationMatrix * position;
+    float scale = 0.1F; // TODO make this configurable
+    mat4 scaleMatrix;
+    scaleMatrix[0] = vec4(scale, 0.0, 0.0, 0.0);
+    scaleMatrix[1] = vec4(0.0, scale, 0.0, 0.0);
+    scaleMatrix[2] = vec4(0.0, 0.0, scale, 0.0);
+    scaleMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec4 rotatedPosition = rotationMatrix * scaleMatrix * position;
     vec4 viewPosition = get_modelview_matrix() * (vec4(positionOffset, 0.0F) + rotatedPosition);
     position_fs = viewPosition.xyz;
     gl_Position = get_projection_matrix() * viewPosition;
