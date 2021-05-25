@@ -92,7 +92,7 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     // if the camera is outside the atmosphere, the ray should start at the edge of the atmosphere
     // if it's inside, it should start at the position of the camera
     // the min statement makes sure of that
-    float ray_pos_i = ray_length.x;
+    float ray_pos_i = ray_length.x + step_size_primary * 0.5;
 
     // these are the values we use to gather all the scattered light
     vec3 total_ray = vec3(0.0);// for rayleigh
@@ -100,6 +100,12 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
 
     // initialize the optical depth. This is used to calculate how much air was in the ray
     vec3 opt_i = vec3(0.0);
+
+    // we define the density early, as this helps doing integration
+    // usually we would do riemans summing, which is just the squares under the integral area
+    // this is a bit innefficient, and we can make it better by also taking the extra triangle at the top of the square into account
+    // the starting value is a bit inaccurate, but it should make it better overall
+    vec3 prev_density = vec3(0.0);
 
     // also init the scale height, avoids some vec2's later on
     vec2 scale_height = vec2(height_ray, height_mie);
@@ -117,7 +123,7 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
     for (int i = 0; i < steps_primary; ++i) {
 
         // calculate where we are along this ray
-        vec3 pos_i = start + dir * (ray_pos_i + step_size_primary * 0.5);
+        vec3 pos_i = start + dir * ray_pos_i;
 
         // and how high we are above the surface
         float height_i = length(pos_i) - planet_radius;
@@ -128,11 +134,19 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
         // and the absorption density. this is for ozone, which scales together with the rayleigh,
         // but absorbs the most at a specific height, so use the sech function for a nice curve falloff for this height
         // clamp it to avoid it going out of bounds. This prevents weird black spheres on the night side
-        density.z = clamp((1.0 / cosh((height_absorption - height_i) / absorption_falloff)) * density.x, 0.0, 1.0);
+        float denom = (height_absorption - height_i) / absorption_falloff;
+        density.z = (1.0 / (denom * denom + 1.0)) * density.x;
+
+        // multiply it by the step size here
+        // we are going to use the density later on as well
         density *= step_size_primary;
 
         // Add these densities to the optical depth, so that we know how many particles are on this ray.
-        opt_i += density;
+        // max here is needed to prevent opt_i from potentially becoming negative
+        opt_i += max(density + (prev_density - density) * 0.5, 0.0);
+
+        // and update the previous density
+        prev_density = density;
 
         // Calculate the step size of the light ray.
         // again with a ray sphere intersect
@@ -148,25 +162,41 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
 
         // and the position along this ray
         // this time we are sure the ray is in the atmosphere, so set it to 0
-        float ray_pos_l = 0.0;
+        float ray_pos_l = step_size_light * 0.5;
 
         // and the optical depth of this ray
         vec3 opt_l = vec3(0.0);
+
+        // again, use the prev density for better integration
+        vec3 prev_density_l = vec3(0.0);
 
         // now sample the light ray
         // this is similar to what we did before
         for (int l = 0; l < steps_light; ++l) {
 
             // calculate where we are along this ray
-            vec3 pos_l = pos_i + light_dir * (ray_pos_l + step_size_light * 0.5);
+            vec3 pos_l = pos_i + light_dir * ray_pos_l;
 
             // the heigth of the position
             float height_l = length(pos_l) - planet_radius;
 
             // calculate the particle density, and add it
+            // this is a bit verbose
+            // first, set the density for ray and mie
             vec3 density_l = vec3(exp(-height_l / scale_height), 0.0);
-            density_l.z = clamp((1.0 / cosh((height_absorption - height_l) / absorption_falloff)) * density_l.x, 0.0, 1.0);
-            opt_l += density_l * step_size_light;
+
+            // then, the absorption
+            float denom = (height_absorption - height_l) / absorption_falloff;
+            density_l.z = (1.0 / (denom * denom + 1.0)) * density_l.x;
+
+            // multiply the density by the step size
+            density_l *= step_size_light;
+
+            // and add it to the total optical depth
+            opt_l += max(density_l + (prev_density_l - density_l) * 0.5, 0.0);
+
+            // and update the previous density
+            prev_density_l = density_l;
 
             // and increment where we are along the light ray.
             ray_pos_l += step_size_light;
@@ -175,7 +205,7 @@ vec3 light_intensity// how bright the light is, affects the brightness of the at
 
         // Now we need to calculate the attenuation
         // this is essentially how much light reaches the current sample point due to scattering
-        vec3 attn = exp(-(beta_mie * (opt_i.y + opt_l.y) + beta_ray * (opt_i.x + opt_l.x) + beta_absorption * (opt_i.z + opt_l.z)));
+        vec3 attn = exp(-beta_ray * (opt_i.x + opt_l.x) - beta_mie * (opt_i.y + opt_l.y) - beta_absorption * (opt_i.z + opt_l.z));
 
         // accumulate the scattered light (how much will be scattered towards the camera)
         total_ray += density.x * attn;
