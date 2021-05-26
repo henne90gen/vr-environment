@@ -39,8 +39,8 @@ struct LightSource
 int get_nr_light_sources();
 LightSource get_light_source(int i);
 void evaluate_light(LightSource L, in vec3 p_eye, out vec3 omega_in, out vec3 radiance_in);
-
 //***** end interface of lights.glsl ***********************************
+
 //***** begin interface of side.glsl ***********************************
 bool keep_this_side(in vec3 position, in vec3 normal, out int side);
 void update_material_color_and_transparency(inout vec3 mat_color, inout float transparency, in int side, in vec4 color);
