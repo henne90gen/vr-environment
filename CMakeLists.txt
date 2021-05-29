@@ -34,6 +34,7 @@ add_library(vr_env
         Branch.cpp
         Sphere.cpp
         TerrainParams.cpp
+        utils.cpp
 
         ${ST_FILES}
         ${SHADERS})

@@ -3,6 +3,7 @@
 #include <cgv_gl/gl/gl_tools.h>
 
 #include "../macros.h"
+#include "../utils.h"
 #include "blur_renderer.h"
 #include "ssao_renderer.h"
 
@@ -46,107 +47,107 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 	return init_g_buffer(ctx);
 }
 
-bool deferred_renderer::init_g_buffer(cgv::render::context &ctx){
-    gBuffer = cgv::render::frame_buffer();
-    if (!gBuffer.create(ctx)) {
-        std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
+	gBuffer = cgv::render::frame_buffer();
+	if (!gBuffer.create(ctx)) {
+		std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    const std::string ws = std::to_string(ctx.get_width());
-    const std::string hs = std::to_string(ctx.get_height());
-    gPosition = cgv::render::texture(              //
-          "flt16[R,G,B,A](" + ws + "," + hs + ")", //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE            //
-    );
-    if (!gPosition.create(ctx, cgv::render::TT_2D)) {
-        std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
-        return false;
-    }
-    if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
-        std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	const std::string ws = std::to_string(ctx.get_width());
+	const std::string hs = std::to_string(ctx.get_height());
+	gPosition = cgv::render::texture(              //
+		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
+	);
+	if (!gPosition.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
+		std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    gNormal = cgv::render::texture(                //
-          "flt16[R,G,B,A](" + ws + "," + hs + ")", //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE            //
-    );
-    if (!gNormal.create(ctx, cgv::render::TT_2D)) {
-        std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
-        return false;
-    }
-    if (!gBuffer.attach(ctx, gNormal, 0, 1)) {
-        std::cerr << "Failed to attach normal texture: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	gNormal = cgv::render::texture(                //
+		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
+	);
+	if (!gNormal.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gNormal, 0, 1)) {
+		std::cerr << "Failed to attach normal texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    gAlbedo = cgv::render::texture(                //
-          "uint8[R,G,B,A](" + ws + "," + hs + ")", //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE            //
-    );
-    if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
-        std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
-        return false;
-    }
-    if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
-        std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	gAlbedo = cgv::render::texture(                //
+		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
+	);
+	if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
+		std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    // TODO this can be optimized by reducing the texture to a single channel
-    gIsCloud = cgv::render::texture(               //
-          "uint8[R,G,B,A](" + ws + "," + hs + ")", //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TF_NEAREST,                 //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE,           //
-          cgv::render::TW_CLAMP_TO_EDGE            //
-    );
-    if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
-        std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
-        return false;
-    }
-    if (!gBuffer.attach(ctx, gIsCloud, 0, 3)) {
-        std::cerr << "Failed to attach is_cloud texture: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	// TODO this can be optimized by reducing the texture to a single channel
+	gIsCloud = cgv::render::texture(               //
+		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TF_NEAREST,                 //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,           //
+		  cgv::render::TW_CLAMP_TO_EDGE            //
+	);
+	if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gIsCloud, 0, 3)) {
+		std::cerr << "Failed to attach is_cloud texture: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    gDepth = cgv::render::texture(           //
-          "flt32[D](" + ws + "," + hs + ")", //
-          cgv::render::TF_NEAREST,           //
-          cgv::render::TF_NEAREST,           //
-          cgv::render::TW_CLAMP_TO_EDGE,     //
-          cgv::render::TW_CLAMP_TO_EDGE,     //
-          cgv::render::TW_CLAMP_TO_EDGE      //
-    );
-    gDepth.set_compare_mode(false);
-    gDepth.set_compare_function(cgv::render::CF_LEQUAL);
-    if (!gDepth.create(ctx, cgv::render::TT_2D)) {
-        std::cerr << "Failed to create depth buffer: " << gDepth.last_error << std::endl;
-        return false;
-    }
-    if (!gBuffer.attach(ctx, gDepth)) {
-        std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	gDepth = cgv::render::texture(           //
+		  "flt32[D](" + ws + "," + hs + ")", //
+		  cgv::render::TF_NEAREST,           //
+		  cgv::render::TF_NEAREST,           //
+		  cgv::render::TW_CLAMP_TO_EDGE,     //
+		  cgv::render::TW_CLAMP_TO_EDGE,     //
+		  cgv::render::TW_CLAMP_TO_EDGE      //
+	);
+	gDepth.set_compare_mode(false);
+	gDepth.set_compare_function(cgv::render::CF_LEQUAL);
+	if (!gDepth.create(ctx, cgv::render::TT_2D)) {
+		std::cerr << "Failed to create depth buffer: " << gDepth.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gDepth)) {
+		std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
-    if (!gBuffer.is_complete(ctx)) {
-        std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
-        return false;
-    }
+	if (!gBuffer.is_complete(ctx)) {
+		std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
 
 	return true;
 }
@@ -245,19 +246,26 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 		return;
 	}
 
-	auto &ssao = ref_ssao_renderer(ctx);
-	ssao.render(ctx, gPosition, gNormal, ssao_texture);
+	{
+		TIME_SCOPE("  ssao");
+		auto &ssao = ref_ssao_renderer(ctx);
+		ssao.render(ctx, gPosition, gNormal, ssao_texture);
 
-	auto &blur = ref_blur_renderer(ctx);
-	blurred_ssao_texture.set_component_format(ssao_texture.get_component_format());
-	blur.render(ctx, ssao_texture, blurred_ssao_texture);
-
-	set_position_array(ctx, positions);
-	set_texcoord_array(ctx, texcoords);
-	set_indices(ctx, indices);
-	renderer::render(ctx, 0, indices.size());
+		auto &blur = ref_blur_renderer(ctx);
+		blurred_ssao_texture.set_component_format(ssao_texture.get_component_format());
+		blur.render(ctx, ssao_texture, blurred_ssao_texture);
+	}
 
 	{
+		TIME_SCOPE("  lighting");
+		set_position_array(ctx, positions);
+		set_texcoord_array(ctx, texcoords);
+		set_indices(ctx, indices);
+		renderer::render(ctx, 0, indices.size());
+	}
+
+	{
+		TIME_SCOPE("  depth buffer copy");
 		//  NOTE: copying the depth buffer from the gBuffer to the main depth buffer, because the depth information is
 		//  later used by the stereo view to allow scene navigation
 		GLint fbo_id;

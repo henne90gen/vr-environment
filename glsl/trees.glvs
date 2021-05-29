@@ -31,11 +31,17 @@ uniform float rotation = 0.0F;
 
 void main() {
     vec3 positionOffset = vec3(0.0F);
-    if (has_position_texture){
-        ivec2 positionTextureSize = textureSize(position_texture, 0);
+    if (has_position_texture) {
+        const int sectionCount = 16;
+        const int treesPerSectionPositionTexture = 64;
+        int treesPerSection = tree_count / sectionCount;
+        int indexInsideSection = gl_InstanceID % treesPerSection;
+        int sectionIndex = gl_InstanceID / treesPerSection;
+        int indexOnPositionTexture = sectionIndex * treesPerSectionPositionTexture + indexInsideSection;
         vec2 uv = vec2(0.0F, 0.0F);
-        uv.x = float(gl_InstanceID % positionTextureSize.x) / float(positionTextureSize.x);
-        uv.y = float(gl_InstanceID / positionTextureSize.y) / float(positionTextureSize.y);
+        ivec2 positionTextureSize = textureSize(position_texture, 0);
+        uv.x = float(indexOnPositionTexture % positionTextureSize.x) / float(positionTextureSize.x);
+        uv.y = float(indexOnPositionTexture / positionTextureSize.y) / float(positionTextureSize.y);
         positionOffset = texture(position_texture, uv).xyz;
     }
 
@@ -49,7 +55,7 @@ void main() {
     rotationMatrix[2] = vec4(sin(alpha), 0.0, cos(alpha), 0.0);
     rotationMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-    float scale = 0.1F; // TODO make this configurable
+    float scale = 0.1F;// TODO make this configurable
     mat4 scaleMatrix;
     scaleMatrix[0] = vec4(scale, 0.0, 0.0, 0.0);
     scaleMatrix[1] = vec4(0.0, scale, 0.0, 0.0);

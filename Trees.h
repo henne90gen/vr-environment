@@ -64,7 +64,6 @@ class Trees : public cgv::render::render_types {
 	Mesh tree_mesh = {};
 	Mesh cube_mesh = {};
 
-	int treeCount = 1024;
 	float lodSize = 1000.0F;
 	float lodInnerSize = 100.0F;
 	float treeScale = 0.15F;

@@ -17,7 +17,6 @@ layout (rgba32f, binding = 0) uniform image2D imgOutput;
 
 uniform float lodSize = 1000.0F;
 uniform float lodInnerSize = 100.0F;
-//uniform int treeCount;
 
 uniform NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS];
 uniform int numNoiseLayers;
@@ -69,12 +68,6 @@ bool discardTree(vec2 pos, vec4 noise) {
 
 void main() {
     ivec2 imgSize = imageSize(imgOutput);
-    //    if (invocationId > treeCount) {
-    //        // don't calculate positions that won't be used
-    //        ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
-    //        imageStore(imgOutput, pixelCoords, vec4(0.0F, 0.0F, 0.0F, 1.0F));
-    //        return;
-    //    }
 
     const float lodH = lodSize / 2.0F;
     const float lodIH = lodInnerSize / 2.0F;

@@ -43,19 +43,28 @@ void Trees::render(cgv::render::context &ctx, const ShaderToggles &shaderToggles
 
 	renderGrid(ctx);
 
-	auto &tr = ref_tree_renderer(ctx);
-	tr.set_render_style(tree_style);
-	tr.set_position_texture(ctx, tree_position_texture);
-	auto &mesh = tree_mesh;
-	if (showCubes) {
-		mesh = cube_mesh;
-	}
+	{
+		TIME_SCOPE("      tree render");
+		auto &tr = ref_tree_renderer(ctx);
+		auto &mesh = tree_mesh;
+		if (showCubes) {
+			mesh = cube_mesh;
+		}
+		{
+			TIME_SCOPE("        tree render set attributes");
+			tr.set_render_style(tree_style);
+			tr.set_position_texture(ctx, tree_position_texture);
 
-	tr.set_position_array(ctx, mesh.positions);
-	tr.set_normal_array(ctx, mesh.normals);
-	tr.set_texcoord_array(ctx, mesh.uvs);
-	tr.set_indices(ctx, mesh.indices);
-	tr.render(ctx, 0, mesh.indices.size());
+			tr.set_position_array(ctx, mesh.positions);
+			tr.set_normal_array(ctx, mesh.normals);
+			tr.set_texcoord_array(ctx, mesh.uvs);
+			tr.set_indices(ctx, mesh.indices);
+		}
+		{
+			TIME_SCOPE("        tree render execute");
+			tr.render(ctx, 0, mesh.indices.size());
+		}
+	}
 }
 
 bool Trees::initComputeShader(cgv::render::context &ctx) {
@@ -88,7 +97,7 @@ void Trees::renderComputeShader(cgv::render::context &ctx, const TerrainParams &
 		return;
 	}
 
-	tree_position_compute_shader.set_uniform(ctx, "treeCount", treeCount);
+	TIME_SCOPE("      tree placement compute shader");
 	tree_position_compute_shader.set_uniform(ctx, "lodSize", lodSize);
 	tree_position_compute_shader.set_uniform(ctx, "lodInnerSize", lodInnerSize);
 	terrainParams.set_shader_uniforms(ctx, tree_position_compute_shader);
@@ -131,6 +140,7 @@ void Trees::renderGrid(cgv::render::context &ctx) {
 		return;
 	}
 
+	TIME_SCOPE("      tree placement grid");
 	auto &box_wire = cgv::render::ref_box_wire_renderer(ctx);
 	box_wire.set_box_array(ctx, gridBoxes);
 	box_wire.render(ctx, 0, gridBoxes.size());

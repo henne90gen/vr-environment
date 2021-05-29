@@ -2,6 +2,8 @@
 
 #include <cgv_gl/box_renderer.h>
 
+#include "utils.h"
+
 vr_env::vr_env() { set_name("vr_env"); }
 
 void vr_env::stream_help(std::ostream &os) {
@@ -59,19 +61,31 @@ void vr_env::clear(cgv::render::context &ctx) {
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
 
 void vr_env::draw(cgv::render::context &ctx) {
-	auto &deferred = ref_deferred_renderer(ctx);
-	deferred.set_render_style(deferred_style);
-	deferred.render(ctx, [&]() {
-		auto &terrain = ref_terrain_renderer(ctx);
-		terrain.set_render_style(terrain_style);
-		terrain.render(ctx, terrainParams);
+	{
+		TIME_SCOPE("scene");
+		auto &deferred = ref_deferred_renderer(ctx);
+		deferred.set_render_style(deferred_style);
+		deferred.render(ctx, [&]() {
+			{
+				TIME_SCOPE("    terrain");
+				auto &terrain = ref_terrain_renderer(ctx);
+				terrain.set_render_style(terrain_style);
+				terrain.render(ctx, terrainParams);
+			}
 
-		trees.render(ctx, shaderToggles, terrainParams);
+			{
+				TIME_SCOPE("    trees");
+				trees.render(ctx, shaderToggles, terrainParams);
+			}
 
-		auto &clouds = ref_clouds_renderer(ctx);
-		clouds.set_render_style(clouds_style);
-		clouds.render(ctx);
-	});
+			{
+				TIME_SCOPE("    clouds");
+				auto &clouds = ref_clouds_renderer(ctx);
+				clouds.set_render_style(clouds_style);
+				clouds.render(ctx);
+			}
+		});
+	}
 
 	std::vector<box3> boxes = {};
 	for (int i = 0; i < 100; i++) {
