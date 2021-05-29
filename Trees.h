@@ -38,7 +38,7 @@ class Trees : public cgv::render::render_types {
 
 	bool enabled = true;
 	bool showCubes = false;
-	bool showGrid = true;
+	bool showGrid = false;
 	tree_render_style tree_style = {};
 
   private:

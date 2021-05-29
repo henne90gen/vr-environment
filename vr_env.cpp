@@ -88,14 +88,25 @@ void vr_env::draw(cgv::render::context &ctx) {
 	}
 	get_performance_counter().print();
 
-	std::vector<box3> boxes = {};
+	std::vector<vec3> box_positions = {};
+	std::mt19937 generator(terrainParams.seed);
+    const float range_from = 0.0;
+    const float range_to = 4.0;
+	std::uniform_real_distribution<float> distribution(range_from, range_to);
+
 	for (int i = 0; i < 100; i++) {
-		boxes.emplace_back(vec3(i - 1), vec3(i + 1));
+		float x = distribution(generator);
+		float y = distribution(generator);
+		float z = distribution(generator);
+		box_positions.emplace_back(x, y, z);
 	}
 
 	auto &box_renderer = cgv::render::ref_box_renderer(ctx, 1);
-	box_renderer.set_box_array(ctx, boxes);
-	box_renderer.render(ctx, 0, boxes.size());
+	auto box_style = cgv::render::box_render_style();
+	box_style.default_extent = vec3(0.2);
+	box_renderer.set_render_style(box_style);
+	box_renderer.set_position_array(ctx, box_positions);
+	box_renderer.render(ctx, 0, box_positions.size());
 }
 
 void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx); }
