@@ -83,8 +83,6 @@ uniform sampler2D gDepth;
 uniform int render_target = 0;
 uniform bool use_atmospheric_scattering = false;
 uniform bool use_ambient_occlusion = false;
-uniform float ambient_occlusion_scale = 0.3F;
-uniform float aspect_ratio = 1.5F;// TODO find out where we can get this information from
 
 vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color) {
     int side = 0;
@@ -121,8 +119,8 @@ void main() {
     }
     if (render_target == 7) {
         float d = texture(gDepth, texcoord_fs).r;
-        float n = 0.001;                                // the near plane
-        float f = 1000.0;                               // the far plane
+        float n = 0.001;// the near plane
+        float f = 1000.0;// the far plane
         float linear_depth = (2.0 * n) / (f + n - d * (f - n));
         color = vec4(vec3(linear_depth), 1.0F);
         return;
@@ -139,6 +137,9 @@ void main() {
     vec3 normal = normalize(texture(gNormal, texcoord_fs).xyz);
     vec4 diffuse = vec4(texture(gAlbedo, texcoord_fs).rgb, 1.0);
     bool CloudLighting = texture(gIsCloud, texcoord_fs).r == 1.0F;
+
+    ivec2 positionTextureSize = textureSize(gPosition, 0);
+    float aspect_ratio = float(positionTextureSize.x) / float(positionTextureSize.y);
 
     float AmbientOcclusion = 1.0F;
     if (use_ambient_occlusion) {

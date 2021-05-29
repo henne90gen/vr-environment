@@ -11,6 +11,29 @@ cgv::render::render_types::ivec3 to_ivec3(glm::ivec3 v);
 #define NANOSECONDS(timePoint)                                                                                         \
 	std::chrono::time_point_cast<std::chrono::nanoseconds>(timePoint).time_since_epoch().count()
 
+struct DataPoint {
+	double lastValue = 0.0;
+	double average = 0.0;
+	double standardDeviation = 0.0;
+	double _sum = 0.0;
+	double _sdSum = 0.0;
+	unsigned int timerCount = 0;
+};
+
+class PerformanceCounter {
+  public:
+	PerformanceCounter() = default;
+	~PerformanceCounter() = default;
+
+	void recordValue(const std::string &name, long long start, long long end);
+	void reset();
+	void print() const;
+
+	std::unordered_map<std::string, DataPoint> dataPoints = {};
+};
+
+const PerformanceCounter &get_performance_counter();
+
 class Timer {
   public:
 	explicit Timer(std::string name);

@@ -19,7 +19,7 @@ enum class DeferredRenderTarget {
 	IS_CLOUD = 4,
 	SSAO = 5,
 	SSAO_BLUR = 6,
-    DEPTH = 7,
+	DEPTH = 7,
 	TEST = 8,
 };
 
@@ -27,10 +27,9 @@ struct deferred_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	deferred_render_style() = default;
 
-	DeferredRenderTarget render_target = DeferredRenderTarget::DEPTH;
+	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
 	bool use_atmospheric_scattering = true;
 	bool use_ambient_occlusion = true;
-	bool use_aces_film = false;
 };
 
 /// renderer that supports point splatting

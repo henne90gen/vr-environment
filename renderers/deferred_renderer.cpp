@@ -314,7 +314,6 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 			  "draw to the screen.'");
 		p->add_member_control(b, "use atmospheric scattering", style->use_atmospheric_scattering);
 		p->add_member_control(b, "use ambient occlusion", style->use_ambient_occlusion);
-		p->add_member_control(b, "use aces film", style->use_aces_film);
 
 		return true;
 	}

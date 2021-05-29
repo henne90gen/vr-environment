@@ -86,6 +86,7 @@ void vr_env::draw(cgv::render::context &ctx) {
 			}
 		});
 	}
+	get_performance_counter().print();
 
 	std::vector<box3> boxes = {};
 	for (int i = 0; i < 100; i++) {
