@@ -48,7 +48,7 @@ void main() {
         vec3 samplePos = TBN * samples[i];// from tangent to view-space
         samplePos = fragPos + samplePos * radius;
 
-        // project sample position (to sample texture) (to get position on screen/texture)
+        // project sample position to sample texture (to get position on screen/texture)
         vec4 offset = vec4(samplePos, 1.0);
         offset = get_projection_matrix() * offset;// from view to clip-space
         offset.xyz /= offset.w;// perspective divide

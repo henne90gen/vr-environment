@@ -216,6 +216,9 @@ in int seed
 
     float normalizedHeight = noise.x / noiseMax;
     vec4 result = vec4(noise, normalizedHeight);
+
+    // move platform down underneath the user
+    result.x -= platformHeight * noiseMax + 2;
     return result;
 }
 

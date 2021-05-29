@@ -52,11 +52,9 @@ void main() {
     tangent_fs = vec3(1.0F, noise.y, 0.0F);
     bitangent_fs = vec3(0.0F, noise.z, 1.0F);
     normal_fs = -normalize(cross(tangent_fs, bitangent_fs));
+    uv_fs = pos / uvScaleFactor;
 
     vec4 position = get_modelview_matrix() * vec4(pos.x, noise.x, pos.y, 1.0F);
-
     model_position_fs = position.xyz;
     gl_Position = get_projection_matrix() * position;
-
-    uv_fs = pos / uvScaleFactor;
 }

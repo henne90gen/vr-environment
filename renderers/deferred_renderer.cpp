@@ -43,97 +43,110 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	gBuffer = cgv::render::frame_buffer();
-	if (!gBuffer.create(ctx)) {
-		std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+	return init_g_buffer(ctx);
+}
 
-	const std::string ws = std::to_string(ctx.get_width());
-	const std::string hs = std::to_string(ctx.get_height());
-	gPosition = cgv::render::texture(              //
-		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE            //
-	);
-	if (!gPosition.create(ctx, cgv::render::TT_2D)) {
-		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
-		return false;
-	}
-	if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
-		std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+bool deferred_renderer::init_g_buffer(cgv::render::context &ctx){
+    gBuffer = cgv::render::frame_buffer();
+    if (!gBuffer.create(ctx)) {
+        std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
-	gNormal = cgv::render::texture(                //
-		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE            //
-	);
-	if (!gNormal.create(ctx, cgv::render::TT_2D)) {
-		std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
-		return false;
-	}
-	if (!gBuffer.attach(ctx, gNormal, 0, 1)) {
-		std::cerr << "Failed to attach normal texture: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+    const std::string ws = std::to_string(ctx.get_width());
+    const std::string hs = std::to_string(ctx.get_height());
+    gPosition = cgv::render::texture(              //
+          "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE            //
+    );
+    if (!gPosition.create(ctx, cgv::render::TT_2D)) {
+        std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
+        return false;
+    }
+    if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
+        std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
-	gAlbedo = cgv::render::texture(                //
-		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE            //
-	);
-	if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
-		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
-		return false;
-	}
-	if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
-		std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+    gNormal = cgv::render::texture(                //
+          "flt16[R,G,B,A](" + ws + "," + hs + ")", //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE            //
+    );
+    if (!gNormal.create(ctx, cgv::render::TT_2D)) {
+        std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
+        return false;
+    }
+    if (!gBuffer.attach(ctx, gNormal, 0, 1)) {
+        std::cerr << "Failed to attach normal texture: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
-	// TODO this can be optimized by reducing the texture to a single channel
-	gIsCloud = cgv::render::texture(               //
-		  "uint8[R,G,B,A](" + ws + "," + hs + ")", //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TF_NEAREST,                 //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE,           //
-		  cgv::render::TW_CLAMP_TO_EDGE            //
-	);
-	if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
-		std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
-		return false;
-	}
-	if (!gBuffer.attach(ctx, gIsCloud, 0, 3)) {
-		std::cerr << "Failed to attach is_cloud texture: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+    gAlbedo = cgv::render::texture(                //
+          "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE            //
+    );
+    if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
+        std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
+        return false;
+    }
+    if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
+        std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
-	gDepth = cgv::render::render_buffer("[D]");
-	if (!gDepth.create(ctx)) {
-		std::cerr << "Failed to create depth buffer" << gDepth.last_error << std::endl;
-		return false;
-	}
-	if (!gBuffer.attach(ctx, gDepth)) {
-		std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+    // TODO this can be optimized by reducing the texture to a single channel
+    gIsCloud = cgv::render::texture(               //
+          "uint8[R,G,B,A](" + ws + "," + hs + ")", //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TF_NEAREST,                 //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE,           //
+          cgv::render::TW_CLAMP_TO_EDGE            //
+    );
+    if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
+        std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
+        return false;
+    }
+    if (!gBuffer.attach(ctx, gIsCloud, 0, 3)) {
+        std::cerr << "Failed to attach is_cloud texture: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
-	if (!gBuffer.is_complete(ctx)) {
-		std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
-		return false;
-	}
+    gDepth = cgv::render::texture(           //
+          "flt32[D](" + ws + "," + hs + ")", //
+          cgv::render::TF_NEAREST,           //
+          cgv::render::TF_NEAREST,           //
+          cgv::render::TW_CLAMP_TO_EDGE,     //
+          cgv::render::TW_CLAMP_TO_EDGE,     //
+          cgv::render::TW_CLAMP_TO_EDGE      //
+    );
+    gDepth.set_compare_mode(false);
+    gDepth.set_compare_function(cgv::render::CF_LEQUAL);
+    if (!gDepth.create(ctx, cgv::render::TT_2D)) {
+        std::cerr << "Failed to create depth buffer: " << gDepth.last_error << std::endl;
+        return false;
+    }
+    if (!gBuffer.attach(ctx, gDepth)) {
+        std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
+        return false;
+    }
+
+    if (!gBuffer.is_complete(ctx)) {
+        std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
+        return false;
+    }
 
 	return true;
 }
@@ -191,6 +204,13 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!gDepth.enable(ctx, 6)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "gDepth", 6)) {
+		return false;
+	}
+
 	const auto &style = get_style<deferred_render_style>();
 	if (!ref_prog().set_uniform(ctx, "render_target", static_cast<int>(style.render_target))) {
 		return false;
@@ -206,6 +226,12 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 }
 
 void deferred_renderer::render(cgv::render::context &ctx, const std::function<void()> &func) {
+	if (gBuffer.get_width() != ctx.get_width() || gBuffer.get_height() != ctx.get_height()) {
+		if (!init_g_buffer(ctx)) {
+			std::cerr << "Failed to resize gBuffer" << std::endl;
+		}
+	}
+
 	if (!gBuffer.enable(ctx)) {
 		std::cerr << "Failed to enable gBuffer: " << gBuffer.last_error << std::endl;
 		return;
@@ -232,14 +258,17 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 	renderer::render(ctx, 0, indices.size());
 
 	{
-		// NOTE: copying the depth buffer from the gBuffer to the main depth buffer, because the depth information is
-		// later used by the stereo view to allow scene navigation
-		// TODO this doesn't seem to be enough to make the scene navigation work without bugs
+		//  NOTE: copying the depth buffer from the gBuffer to the main depth buffer, because the depth information is
+		//  later used by the stereo view to allow scene navigation
+		GLint fbo_id;
+		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &fbo_id);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, get_gl_id(gBuffer.handle));
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_id);
 		int width = static_cast<int>(ctx.get_width());
 		int height = static_cast<int>(ctx.get_height());
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_id);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_id);
 	}
 }
 
@@ -272,7 +301,7 @@ struct deferred_render_style_gui_creator : public cgv::gui::gui_creator {
 		auto *b = dynamic_cast<cgv::base::base *>(p);
 		p->add_member_control(
 			  b, "render target", style->render_target, "dropdown",
-			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4,SSAO=5,SSAO_BLUR=6,TEST=7';tooltip='"
+			  "enums='DEFAULT=0,POSITION=1,NORMAL=2,ALBEDO=3,IS_CLOUD=4,SSAO=5,SSAO_BLUR=6,DEPTH=7,TEST=8';tooltip='"
 			  "The final texture to "
 			  "draw to the screen.'");
 		p->add_member_control(b, "use atmospheric scattering", style->use_atmospheric_scattering);

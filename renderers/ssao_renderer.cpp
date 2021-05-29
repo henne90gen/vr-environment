@@ -100,8 +100,6 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	glDisable(GL_BLEND);
-
 	if (!noise.enable(ctx, 0)) {
 		std::cerr << "Failed to enable noise texture: " << noise.last_error << std::endl;
 		return false;
@@ -125,7 +123,7 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().set_uniform(ctx, "gNormal", 2)) {
 		return false;
 	}
-	if (!fb.is_created()) {
+	if (!fb.is_created() || fb.get_width() != ctx.get_width() || fb.get_height() != ctx.get_height()) {
 		if (!fb.create(ctx)) {
 			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
 			return false;
@@ -178,8 +176,6 @@ bool ssao_renderer::disable(cgv::render::context &ctx) {
 	if (!surface_renderer::disable(ctx)) {
 		return false;
 	}
-
-	glEnable(GL_BLEND);
 
 	if (!fb.disable(ctx)) {
 		std::cerr << "Failed to disable ssao framebuffer: " << fb.last_error << std::endl;

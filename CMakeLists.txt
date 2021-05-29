@@ -45,10 +45,8 @@ set_target_properties(
 
 target_link_libraries(vr_env PRIVATE
         OpenMP::OpenMP_CXX
-#        opengl
-#        image
         glm
         cgv_media
         cgv_gl
         cmi_io)
-add_dependencies(vr_env cgv_viewer cg_fltk crg_light crg_grid crg_stereo_view)
+add_dependencies(vr_env cgv_viewer cg_fltk crg_light crg_grid crg_stereo_view crg_vr_view)

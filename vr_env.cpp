@@ -19,6 +19,11 @@ bool vr_env::init(cgv::render::context &ctx) {
 		return false;
 	}
 
+	auto &box_renderer = cgv::render::ref_box_renderer(ctx, 1);
+	if (!box_renderer.init(ctx)) {
+		return false;
+	}
+
 	auto &clouds_renderer = ref_clouds_renderer(ctx, 1);
 	if (!clouds_renderer.init(ctx)) {
 		return false;
@@ -44,6 +49,7 @@ bool vr_env::init(cgv::render::context &ctx) {
 
 void vr_env::clear(cgv::render::context &ctx) {
 	ref_flat_color_renderer(ctx, -1);
+	cgv::render::ref_box_renderer(ctx, -1);
 	ref_deferred_renderer(ctx, -1);
 	ref_clouds_renderer(ctx, -1);
 	ref_terrain_renderer(ctx, -1);
@@ -66,6 +72,15 @@ void vr_env::draw(cgv::render::context &ctx) {
 		clouds.set_render_style(clouds_style);
 		clouds.render(ctx);
 	});
+
+	std::vector<box3> boxes = {};
+	for (int i = 0; i < 100; i++) {
+		boxes.emplace_back(vec3(i - 1), vec3(i + 1));
+	}
+
+	auto &box_renderer = cgv::render::ref_box_renderer(ctx, 1);
+	box_renderer.set_box_array(ctx, boxes);
+	box_renderer.render(ctx, 0, boxes.size());
 }
 
 void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx); }

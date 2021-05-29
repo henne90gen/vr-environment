@@ -19,14 +19,15 @@ enum class DeferredRenderTarget {
 	IS_CLOUD = 4,
 	SSAO = 5,
 	SSAO_BLUR = 6,
-	TEST = 7,
+    DEPTH = 7,
+	TEST = 8,
 };
 
 struct deferred_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	deferred_render_style() = default;
 
-	DeferredRenderTarget render_target = DeferredRenderTarget::DEFAULT;
+	DeferredRenderTarget render_target = DeferredRenderTarget::DEPTH;
 	bool use_atmospheric_scattering = true;
 	bool use_ambient_occlusion = true;
 	bool use_aces_film = false;
@@ -57,7 +58,7 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	cgv::render::texture gIsCloud;
 	cgv::render::texture ssao_texture;
 	cgv::render::texture blurred_ssao_texture;
-	cgv::render::render_buffer gDepth;
+	cgv::render::texture gDepth;
 
   protected:
 	/// overload to allow instantiation of deferred_renderer
@@ -76,6 +77,8 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
+
+	bool init_g_buffer(cgv::render::context &ctx);
 };
 
 struct deferred_render_style_reflect : public deferred_render_style {

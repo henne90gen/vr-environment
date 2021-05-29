@@ -44,7 +44,6 @@ void Branch::grow(const TreeSettings &settings, double feed) {
 }
 
 void Branch::split(const TreeSettings &settings) {
-
     leaf = false;
 
     // Add Child Branches

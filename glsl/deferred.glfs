@@ -78,20 +78,17 @@ uniform sampler2D gAlbedo;
 uniform sampler2D gIsCloud;
 uniform sampler2D ssao;
 uniform sampler2D ssaoBlur;
+uniform sampler2D gDepth;
 
 uniform int render_target = 0;
 uniform bool use_atmospheric_scattering = false;
 uniform bool use_ambient_occlusion = false;
-uniform float aspect_ratio = 1.0F;// TODO find out where we can get this information from
+uniform float ambient_occlusion_scale = 0.3F;
+uniform float aspect_ratio = 1.5F;// TODO find out where we can get this information from
 
-vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color, float ambient_occlusion) {
-    // TODO check that ambient occlusion is applied correctly
+vec4 compute_reflected_appearance_custom(vec3 position_eye, vec3 normal_eye, vec4 color) {
     int side = 0;
-    Material M = get_material();
-    M.ambient_occlusion = ambient_occlusion;
-    update_material_color_and_transparency(M.diffuse_reflectance, M.transparency, side, color);
-    update_normal(normal_eye, side);
-    return compute_reflected_radiance(M, position_eye, normal_eye);
+    return compute_reflected_appearance(position_eye, normal_eye, color, side);
 }
 
 void main() {
@@ -123,6 +120,14 @@ void main() {
         return;
     }
     if (render_target == 7) {
+        float d = texture(gDepth, texcoord_fs).r;
+        float n = 0.001;                                // the near plane
+        float f = 1000.0;                               // the far plane
+        float linear_depth = (2.0 * n) / (f + n - d * (f - n));
+        color = vec4(vec3(linear_depth), 1.0F);
+        return;
+    }
+    if (render_target == 8) {
         vec3 position = texture(gPosition, texcoord_fs).xyz;
         vec3 normal = normalize(texture(gNormal, texcoord_fs).xyz);
         vec4 diffuseMaterial = vec4(texture(gAlbedo, texcoord_fs).rgb, 1.0);
@@ -148,7 +153,7 @@ void main() {
         // deep space is black o.o
         color = vec4(0.0);
     } else {
-        color = compute_reflected_appearance_custom(position, normal, diffuse, AmbientOcclusion);
+        color = compute_reflected_appearance_custom(position, normal, diffuse) * AmbientOcclusion;
     }
 
     int num_lights = get_nr_light_sources();

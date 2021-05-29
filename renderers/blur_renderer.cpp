@@ -56,7 +56,7 @@ bool blur_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	if (!fb.is_created()) {
+	if (!fb.is_created() || fb.get_width() != ctx.get_width() || fb.get_height() != ctx.get_height()) {
 		if (!fb.create(ctx)) {
 			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
 			return false;
