@@ -56,14 +56,14 @@ bool blur_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
-	if (!fb.is_created() || fb.get_width() != ctx.get_width() || fb.get_height() != ctx.get_height()) {
-		if (!fb.create(ctx)) {
+	unsigned int width = texture_to_be_blurred->get_width();
+	unsigned int height = texture_to_be_blurred->get_height();
+	if (!fb.is_created() || fb.get_width() != width || fb.get_height() != height) {
+		if (!fb.create(ctx, width, height)) {
 			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
 			return false;
 		}
 
-		unsigned int width = texture_to_be_blurred->get_width();
-		unsigned int height = texture_to_be_blurred->get_height();
 		if (!blurred_texture->create(ctx, cgv::render::TT_2D, width, height)) {
 			std::cerr << "Failed to create blurred texture: " << blurred_texture->last_error << std::endl;
 			return false;

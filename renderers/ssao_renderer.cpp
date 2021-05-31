@@ -123,14 +123,15 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().set_uniform(ctx, "gNormal", 2)) {
 		return false;
 	}
-	if (!fb.is_created() || fb.get_width() != ctx.get_width() || fb.get_height() != ctx.get_height()) {
-		if (!fb.create(ctx)) {
+
+	unsigned int width = gPosition->get_width();
+	unsigned int height = gPosition->get_height();
+	if (!fb.is_created() || fb.get_width() != width || fb.get_height() != height) {
+		if (!fb.create(ctx, width, height)) {
 			std::cerr << "Failed to create ssao framebuffer: " << fb.last_error << std::endl;
 			return false;
 		}
 
-		unsigned int width = gPosition->get_width();
-		unsigned int height = gPosition->get_height();
 		auto w = std::to_string(width);
 		auto h = std::to_string(height);
 		*ssao_texture =
@@ -160,11 +161,11 @@ bool ssao_renderer::enable(cgv::render::context &ctx) {
 			return false;
 		}
 	}
-	if (!ref_prog().set_uniform(ctx, "screenWidth", static_cast<float>(ctx.get_width()))) {
+	if (!ref_prog().set_uniform(ctx, "screenWidth", static_cast<float>(width))) {
 		std::cerr << "Failed to set screen width" << std::endl;
 		return false;
 	}
-	if (!ref_prog().set_uniform(ctx, "screenHeight", static_cast<float>(ctx.get_height()))) {
+	if (!ref_prog().set_uniform(ctx, "screenHeight", static_cast<float>(height))) {
 		std::cerr << "Failed to set screen height" << std::endl;
 		return false;
 	}

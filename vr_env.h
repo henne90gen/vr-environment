@@ -41,6 +41,7 @@ class vr_env : public cgv::base::node,
 
 	ShaderToggles shaderToggles = {};
 	TerrainParams terrainParams = {};
+	bool show_example_visualization = true;
 
 	cgv::render::texture test_texture;
 
@@ -61,4 +62,7 @@ class vr_env : public cgv::base::node,
 	void on_set(void *member_ptr) override;
 	void generate_new_seed();
 	void add_new_noise_layer();
+
+	void example_visualization(cgv::render::context &ctx) const;
+	void scene(cgv::render::context &ctx);
 };

@@ -61,11 +61,19 @@ void vr_env::clear(cgv::render::context &ctx) {
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
 
 void vr_env::draw(cgv::render::context &ctx) {
+	scene(ctx);
+	example_visualization(ctx);
+}
+
+void vr_env::scene(cgv::render::context &ctx) {
 	{
 		TIME_SCOPE("scene");
+		GLint vp[4];
+		glGetIntegerv(GL_VIEWPORT, vp);
+
 		auto &deferred = ref_deferred_renderer(ctx);
 		deferred.set_render_style(deferred_style);
-		deferred.render(ctx, [&]() {
+		deferred.render(ctx, vp, [&]() {
 			{
 				TIME_SCOPE("    terrain");
 				auto &terrain = ref_terrain_renderer(ctx);
@@ -86,12 +94,19 @@ void vr_env::draw(cgv::render::context &ctx) {
 			}
 		});
 	}
-	get_performance_counter().print();
+
+	//	get_performance_counter().print();
+}
+
+void vr_env::example_visualization(cgv::render::context &ctx) const {
+	if (!show_example_visualization) {
+		return;
+	}
 
 	std::vector<vec3> box_positions = {};
 	std::mt19937 generator(terrainParams.seed);
-    const float range_from = 0.0;
-    const float range_to = 4.0;
+	const float range_from = 0.0;
+	const float range_to = 4.0;
 	std::uniform_real_distribution<float> distribution(range_from, range_to);
 
 	for (int i = 0; i < 100; i++) {
@@ -149,6 +164,7 @@ void vr_env::create_gui() {
 		end_tree_node(trees);
 	}
 
+	add_member_control(this, "Show Example Visualization", show_example_visualization);
 	add_member_control(this, "Seed", terrainParams.seed);
 	connect_copy(add_button("New Seed")->click, cgv::signal::rebind(this, &vr_env::generate_new_seed));
 	add_member_control(this, "Steepness", terrainParams.power);

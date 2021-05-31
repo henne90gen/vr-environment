@@ -72,12 +72,12 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	bool validate_attributes(const cgv::render::context &ctx) const override;
 	bool enable(cgv::render::context &ctx) override;
 	bool disable(cgv::render::context &ctx) override;
-	void render(cgv::render::context &ctx, const std::function<void()> &func);
+	void render(cgv::render::context &ctx, int viewport[4], const std::function<void()> &func);
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
 
-	bool init_g_buffer(cgv::render::context &ctx);
+	bool init_g_buffer(cgv::render::context &ctx, int width, int height);
 };
 
 struct deferred_render_style_reflect : public deferred_render_style {

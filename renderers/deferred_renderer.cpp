@@ -44,18 +44,18 @@ bool deferred_renderer::init(cgv::render::context &ctx) {
 		return false;
 	}
 
-	return init_g_buffer(ctx);
+	return init_g_buffer(ctx, static_cast<int>(ctx.get_width()), static_cast<int>(ctx.get_height()));
 }
 
-bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
+bool deferred_renderer::init_g_buffer(cgv::render::context &ctx, int width, int height) {
 	gBuffer = cgv::render::frame_buffer();
-	if (!gBuffer.create(ctx)) {
+	if (!gBuffer.create(ctx, width, height)) {
 		std::cerr << "Failed to create gBuffer: " << gBuffer.last_error << std::endl;
 		return false;
 	}
 
-	const std::string ws = std::to_string(ctx.get_width());
-	const std::string hs = std::to_string(ctx.get_height());
+	const std::string ws = std::to_string(width);
+	const std::string hs = std::to_string(height);
 	gPosition = cgv::render::texture(              //
 		  "flt16[R,G,B,A](" + ws + "," + hs + ")", //
 		  cgv::render::TF_NEAREST,                 //
@@ -64,7 +64,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
 		  cgv::render::TW_CLAMP_TO_EDGE,           //
 		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
-	if (!gPosition.create(ctx, cgv::render::TT_2D)) {
+	if (!gPosition.create(ctx, cgv::render::TT_2D, width, height)) {
 		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
 		return false;
 	}
@@ -81,7 +81,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
 		  cgv::render::TW_CLAMP_TO_EDGE,           //
 		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
-	if (!gNormal.create(ctx, cgv::render::TT_2D)) {
+	if (!gNormal.create(ctx, cgv::render::TT_2D, width, height)) {
 		std::cerr << "Failed to create normal texture:" << gNormal.last_error << std::endl;
 		return false;
 	}
@@ -98,7 +98,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
 		  cgv::render::TW_CLAMP_TO_EDGE,           //
 		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
-	if (!gAlbedo.create(ctx, cgv::render::TT_2D)) {
+	if (!gAlbedo.create(ctx, cgv::render::TT_2D, width, height)) {
 		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
 		return false;
 	}
@@ -116,7 +116,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
 		  cgv::render::TW_CLAMP_TO_EDGE,           //
 		  cgv::render::TW_CLAMP_TO_EDGE            //
 	);
-	if (!gIsCloud.create(ctx, cgv::render::TT_2D)) {
+	if (!gIsCloud.create(ctx, cgv::render::TT_2D, width, height)) {
 		std::cerr << "Failed to create is_cloud texture:" << gIsCloud.last_error << std::endl;
 		return false;
 	}
@@ -135,7 +135,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx) {
 	);
 	gDepth.set_compare_mode(false);
 	gDepth.set_compare_function(cgv::render::CF_LEQUAL);
-	if (!gDepth.create(ctx, cgv::render::TT_2D)) {
+	if (!gDepth.create(ctx, cgv::render::TT_2D, width, height)) {
 		std::cerr << "Failed to create depth buffer: " << gDepth.last_error << std::endl;
 		return false;
 	}
@@ -226,9 +226,11 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 	return true;
 }
 
-void deferred_renderer::render(cgv::render::context &ctx, const std::function<void()> &func) {
-	if (gBuffer.get_width() != ctx.get_width() || gBuffer.get_height() != ctx.get_height()) {
-		if (!init_g_buffer(ctx)) {
+void deferred_renderer::render(cgv::render::context &ctx, int viewport[4], const std::function<void()> &func) {
+	int width = viewport[2];
+	int height = viewport[3];
+	if (gBuffer.get_width() != width || gBuffer.get_height() != height) {
+		if (!init_g_buffer(ctx, width, height)) {
 			std::cerr << "Failed to resize gBuffer" << std::endl;
 		}
 	}
@@ -272,9 +274,9 @@ void deferred_renderer::render(cgv::render::context &ctx, const std::function<vo
 		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &fbo_id);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, get_gl_id(gBuffer.handle));
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_id);
-		int width = static_cast<int>(ctx.get_width());
-		int height = static_cast<int>(ctx.get_height());
-		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		int x = viewport[0];
+		int y = viewport[1];
+		glBlitFramebuffer(0, 0, width, height, x, y, x + width, y + height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_id);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_id);
 	}
