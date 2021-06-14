@@ -33,7 +33,7 @@ jobs:
 
       - name: Build and Install
         working-directory: ./build
-        run: xvfb-run cmake --build .
+        run: xvfb-run cmake --build . --target vr_env
 
 #  build-windows:
 #    name: "Windows: Build and Install the CGV framework"
