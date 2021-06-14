@@ -16,6 +16,11 @@ struct terrain_render_style : public cgv::render::surface_render_style {
 
 	bool enabled = true;
 	bool wireframe = false;
+	bool noiseLayersEnabled = true;
+	bool powerEnabled = true;
+	bool bowlEnabled = true;
+	bool platformEnabled = true;
+
 	TerrainLevels levels = {};
 	float tessellation = 60.0F;
 	float uv_scale_factor = 20.0F;

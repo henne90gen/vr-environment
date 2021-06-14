@@ -2,7 +2,7 @@
 
 /*
 The following interface is implemented in this shader:
-//***** begin interface of noice_lib.glsl ***********************************
+//***** begin interface of noise_lib.glsl ***********************************
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
     float frequency;
@@ -12,7 +12,7 @@ struct NoiseLayer {
 vec3 snoise2(vec2 P);
 vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
 in float power, in float bowlStrength, in float platformHeight, in int seed);
-//***** end interface of noice_lib.glsl ***********************************
+//***** end interface of noise_lib.glsl ***********************************
 */
 
 const int MAX_NUM_NOISE_LAYERS = 15;
@@ -181,10 +181,10 @@ void applyPlatform(inout vec3 noise, in float noiseMax, in vec2 pos, in float pl
     noise.z = (1.0F - w) * noise.z;
 }
 
-vec4 generateHeight(in vec2 pos,
+vec4 generateHeightCustom(in vec2 pos,
 in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
 in float power, in float bowlStrength, in float platformHeight,
-in int seed
+in int seed, bool noiseLayersEnabled, bool powerEnabled, bool bowlEnabled, bool platformEnabled
 ) {
     vec3 noise = vec3(0.0F);
     float noiseMin = 0.0F;
@@ -210,9 +210,20 @@ in int seed
     noise.x -= noiseMin;
     noiseMax -= noiseMin;
 
-    applyPower(noise, noiseMax, power);
-    applyBowlEffect(noise, noiseMax, pos, bowlStrength);
-    applyPlatform(noise, noiseMax, pos, platformHeight);
+    if (!noiseLayersEnabled) {
+        noise = vec3(0.0F);
+        noiseMin = 0.0F;
+        noiseMax = 0.0F;
+    }
+    if (powerEnabled) {
+        applyPower(noise, noiseMax, power);
+    }
+    if (bowlEnabled) {
+        applyBowlEffect(noise, noiseMax, pos, bowlStrength);
+    }
+    if (platformEnabled) {
+        applyPlatform(noise, noiseMax, pos, platformHeight);
+    }
 
     float normalizedHeight = noise.x / noiseMax;
     vec4 result = vec4(noise, normalizedHeight);
@@ -222,3 +233,10 @@ in int seed
     return result;
 }
 
+vec4 generateHeight(in vec2 pos,
+in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
+in float power, in float bowlStrength, in float platformHeight,
+in int seed
+) {
+    return generateHeightCustom(pos, noiseLayers, numNoiseLayers, power, bowlStrength, platformHeight, seed, true, true, true, true);
+}

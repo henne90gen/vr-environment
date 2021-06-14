@@ -1,6 +1,6 @@
 #version 430 core
 
-//***** begin interface of noice_lib.glsl ***********************************
+//***** begin interface of noise_lib.glsl ***********************************
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
     float frequency;
@@ -10,7 +10,7 @@ struct NoiseLayer {
 vec3 snoise2(vec2 P);
 vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
 in float power, in float bowlStrength, in float platformHeight, in int seed);
-//***** end interface of noice_lib.glsl ***********************************
+//***** end interface of noise_lib.glsl ***********************************
 
 layout (local_size_x = 1, local_size_y = 1) in;
 layout (rgba32f, binding = 0) uniform image2D imgOutput;

@@ -10,7 +10,7 @@ mat3 get_normal_matrix();
 mat3 get_inverse_normal_matrix();
 //***** end interface of view.glsl ***********************************
 
-//***** begin interface of noice_lib.glsl ***********************************
+//***** begin interface of noise_lib.glsl ***********************************
 const int MAX_NUM_NOISE_LAYERS = 15;
 struct NoiseLayer {
     float frequency;
@@ -18,15 +18,20 @@ struct NoiseLayer {
     bool enabled;
 };
 vec3 snoise2(vec2 P);
-vec4 generateHeight(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
-in float power, in float bowlStrength, in float platformHeight, in int seed);
-//***** end interface of noice_lib.glsl ***********************************
+vec4 generateHeightCustom(in vec2 pos, in NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS], in int numNoiseLayers,
+in float power, in float bowlStrength, in float platformHeight, in int seed, bool noiseLayersEnabled, bool powerEnabled, bool bowlEnabeld, bool platformEnabled);
+//***** end interface of noise_lib.glsl ***********************************
 
 layout (triangles, equal_spacing, cw) in;
 
 in vec2 position_tes[];
 
 uniform float uvScaleFactor;
+
+uniform bool noiseLayersEnabled;
+uniform bool powerEnabled;
+uniform bool bowlEnabled;
+uniform bool platformEnabled;
 
 uniform NoiseLayer noiseLayers[MAX_NUM_NOISE_LAYERS];
 uniform int numNoiseLayers;
@@ -47,7 +52,7 @@ void main() {
     pos     += gl_TessCoord.y * position_tes[1];
     pos     += gl_TessCoord.z * position_tes[2];
 
-    vec4 noise = generateHeight(pos, noiseLayers, numNoiseLayers, power, bowlStrength, platformHeight, seed);
+    vec4 noise = generateHeightCustom(pos, noiseLayers, numNoiseLayers, power, bowlStrength, platformHeight, seed, noiseLayersEnabled, powerEnabled, bowlEnabled, platformEnabled);
     normalized_height_fs = noise.w;
     tangent_fs = vec3(1.0F, noise.y, 0.0F);
     bitangent_fs = vec3(0.0F, noise.z, 1.0F);

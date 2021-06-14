@@ -12,9 +12,9 @@ mat3 get_normal_matrix();
 mat3 get_inverse_normal_matrix();
 //***** end interface of view.glsl ***********************************
 
-//***** begin interface of noice_lib.glsl ***********************************
+//***** begin interface of noise_lib.glsl ***********************************
 float gold_noise(in float seed);
-//***** end interface of noice_lib.glsl ***********************************
+//***** end interface of noise_lib.glsl ***********************************
 
 in vec4 position;
 in vec3 normal;

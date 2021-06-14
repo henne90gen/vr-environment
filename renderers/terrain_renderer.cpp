@@ -99,6 +99,20 @@ bool terrain_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().set_uniform(ctx, "wireframe", style.wireframe)) {
 		return false;
 	}
+
+	if (!ref_prog().set_uniform(ctx, "noiseLayersEnabled", style.noiseLayersEnabled)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "powerEnabled", style.powerEnabled)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "bowlEnabled", style.bowlEnabled)) {
+		return false;
+	}
+	if (!ref_prog().set_uniform(ctx, "platformEnabled", style.platformEnabled)) {
+		return false;
+	}
+
 	if (!ref_prog().set_uniform(ctx, "grassLevel", style.levels.grassLevel)) {
 		return false;
 	}
@@ -207,6 +221,12 @@ struct terrain_render_style_gui_creator : public cgv::gui::gui_creator {
 		auto *b = dynamic_cast<cgv::base::base *>(p);
 		p->add_member_control(b, "Enabled", style->enabled);
 		p->add_member_control(b, "Wireframe", style->wireframe);
+
+		p->add_member_control(b, "Noise Layers Enabled", style->noiseLayersEnabled);
+		p->add_member_control(b, "Power Enabled", style->powerEnabled);
+		p->add_member_control(b, "Bowl Enabled", style->bowlEnabled);
+		p->add_member_control(b, "Platform Enabled", style->platformEnabled);
+
 		p->add_member_control(b, "Tessellation", style->tessellation);
 		p->add_member_control(b, "UV Scale Factor", style->uv_scale_factor);
 		p->add_member_control(b, "Grass Level", style->levels.grassLevel);
