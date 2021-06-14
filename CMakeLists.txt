@@ -5,12 +5,9 @@ project(VREnvironment)
 set(BUILD_SHARED_LIBS ON)
 
 find_package(OpenMP REQUIRED)
+find_package(CGV REQUIRED)
 
-add_subdirectory(${CGV_DIR} ${CMAKE_BINARY_DIR}/cgv)
 add_subdirectory(vendor/glm)
-
-#add_subdirectory(opengl)
-#add_subdirectory(image)
 
 file(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "glsl/*.gl*")
 shader_test("${CGV_DIR}"

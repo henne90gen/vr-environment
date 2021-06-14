@@ -5,19 +5,20 @@
 #include "../TerrainParams.h"
 
 struct TerrainLevels {
-    float grassLevel = 0.4F;
-    float rockLevel = 1.0F;
-    float blur = 0.05F;
+	float grassLevel = 0.4F;
+	float rockLevel = 1.0F;
+	float blur = 0.05F;
 };
 
 struct terrain_render_style : public cgv::render::surface_render_style {
 	/// construct with default values
 	terrain_render_style() = default;
 
+	bool enabled = true;
 	bool wireframe = false;
-    TerrainLevels levels = {};
-    float tessellation = 60.0F;
-    float uv_scale_factor = 20.0F;
+	TerrainLevels levels = {};
+	float tessellation = 60.0F;
+	float uv_scale_factor = 20.0F;
 };
 
 /// renderer that supports point splatting

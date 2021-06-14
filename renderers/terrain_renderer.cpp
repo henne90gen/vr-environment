@@ -127,11 +127,14 @@ void terrain_renderer::draw(cgv::render::context &ctx, size_t start, size_t coun
 }
 
 void terrain_renderer::render(cgv::render::context &ctx, const TerrainParams &terrainParams) {
+	auto &style = get_style<terrain_render_style>();
+	if (!style.enabled) {
+		return;
+	}
 	params = &terrainParams;
 	set_position_array(ctx, custom_positions);
 	set_indices(ctx, custom_indices);
 
-	auto &style = get_style<terrain_render_style>();
 	if (style.wireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
@@ -199,6 +202,7 @@ struct terrain_render_style_gui_creator : public cgv::gui::gui_creator {
 
 		auto *style = reinterpret_cast<terrain_render_style *>(value_ptr);
 		auto *b = dynamic_cast<cgv::base::base *>(p);
+		p->add_member_control(b, "Enabled", style->enabled);
 		p->add_member_control(b, "Wireframe", style->wireframe);
 		p->add_member_control(b, "Tessellation", style->tessellation);
 		p->add_member_control(b, "UV Scale Factor", style->uv_scale_factor);
