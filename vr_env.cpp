@@ -1,7 +1,5 @@
 #include "vr_env.h"
 
-#include <cgv_gl/box_renderer.h>
-
 #include "utils.h"
 
 vr_env::vr_env() { set_name("vr_env"); }
@@ -45,6 +43,8 @@ bool vr_env::init(cgv::render::context &ctx) {
 	if (!trees.init(ctx)) {
 		return false;
 	}
+
+	box_style.default_extent = vec3(0.2);
 
 	return true;
 }
@@ -117,8 +117,6 @@ void vr_env::example_visualization(cgv::render::context &ctx) const {
 	}
 
 	auto &box_renderer = cgv::render::ref_box_renderer(ctx, 1);
-	auto box_style = cgv::render::box_render_style();
-	box_style.default_extent = vec3(0.2);
 	box_renderer.set_render_style(box_style);
 	box_renderer.set_position_array(ctx, box_positions);
 	box_renderer.render(ctx, 0, box_positions.size());
@@ -129,18 +127,18 @@ void vr_env::finish_draw(cgv::render::context &ctx) { drawable::finish_draw(ctx)
 void vr_env::create_gui() {
 	add_decorator("VR Environment", "heading", "level=2");
 
+	if (begin_tree_node("Example Visualization Style", box_style)) {
+		align("\a");
+		add_gui("Example Visualization Style", box_style);
+		align("\b");
+		end_tree_node(box_style);
+	}
+
 	if (begin_tree_node("Deferred Rendering", deferred_style)) {
 		align("\a");
 		add_gui("deferred style", deferred_style);
 		align("\b");
 		end_tree_node(deferred_style);
-	}
-
-	if (begin_tree_node("flat color style", flat_color_style)) {
-		align("\a");
-		add_gui("flat color style", flat_color_style);
-		align("\b");
-		end_tree_node(flat_color_style);
 	}
 
 	if (begin_tree_node("Terrain", terrain_style)) {

@@ -6,6 +6,7 @@
 #include <cgv/render/drawable.h>
 #include <cgv/render/frame_buffer.h>
 #include <cgv/render/shader_program.h>
+#include <cgv_gl/box_renderer.h>
 #include <cgv_gl/gl/mesh_render_info.h>
 
 #include "Trees.h"
@@ -34,8 +35,8 @@ class vr_env : public cgv::base::node,
 	};
 	std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
+	cgv::render::box_render_style box_style = cgv::render::box_render_style();
 	deferred_render_style deferred_style;
-	flat_color_render_style flat_color_style;
 	clouds_render_style clouds_style;
 	terrain_render_style terrain_style;
 

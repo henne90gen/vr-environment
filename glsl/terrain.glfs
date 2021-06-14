@@ -20,8 +20,7 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec3 gAlbedoSpec;
 layout (location = 3) out vec3 gIsCloud;
 
-uniform mat3 normalMatrix;
-
+uniform bool wireframe;
 uniform float grassLevel;
 uniform float rockLevel;
 uniform float blur;
@@ -31,6 +30,10 @@ uniform sampler2D dirtTexture;
 uniform sampler2D rockTexture;
 
 vec3 getSurfaceColor(float height) {
+    if (wireframe) {
+        return vec3(1.0F, 1.0F, 1.0F);
+    }
+
     // TODO make color dependent on normal
     const float grassDamper = 0.75F;
     const float dirtDamper = 0.9F;

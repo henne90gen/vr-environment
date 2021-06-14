@@ -96,6 +96,9 @@ bool terrain_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+	if (!ref_prog().set_uniform(ctx, "wireframe", style.wireframe)) {
+		return false;
+	}
 	if (!ref_prog().set_uniform(ctx, "grassLevel", style.levels.grassLevel)) {
 		return false;
 	}
