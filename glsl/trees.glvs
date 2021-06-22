@@ -28,6 +28,7 @@ uniform sampler2D position_texture;
 uniform bool has_position_texture = false;
 uniform int tree_count;
 uniform float rotation = 0.0F;
+uniform float scale = 0.1F;
 
 void main() {
     vec3 positionOffset = vec3(0.0F);
@@ -55,7 +56,6 @@ void main() {
     rotationMatrix[2] = vec4(sin(alpha), 0.0, cos(alpha), 0.0);
     rotationMatrix[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-    float scale = 0.1F;// TODO make this configurable
     mat4 scaleMatrix;
     scaleMatrix[0] = vec4(scale, 0.0, 0.0, 0.0);
     scaleMatrix[1] = vec4(0.0, scale, 0.0, 0.0);
@@ -66,6 +66,6 @@ void main() {
     vec4 viewPosition = get_modelview_matrix() * (vec4(positionOffset, 0.0F) + rotatedPosition);
     position_fs = viewPosition.xyz;
     gl_Position = get_projection_matrix() * viewPosition;
-    normal_fs = normal;
+    normal_fs = (rotationMatrix * vec4(normal, 0.0F)).xyz;
     uv_fs = texcoord;
 }

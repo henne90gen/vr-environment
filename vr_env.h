@@ -64,6 +64,6 @@ class vr_env : public cgv::base::node,
 	void generate_new_seed();
 	void add_new_noise_layer();
 
-	void example_visualization(cgv::render::context &ctx) const;
-	void scene(cgv::render::context &ctx);
+	void draw_example_visualization(cgv::render::context &ctx) const;
+	void draw_scene(cgv::render::context &ctx);
 };

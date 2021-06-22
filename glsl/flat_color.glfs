@@ -14,10 +14,9 @@ in vec3 position_fs;
 in vec3 normal_fs;
 in vec2 uv_fs;
 
-layout (location = 0) out vec3 gPosition;
+layout (location = 0) out vec3 gAlbedo;
 layout (location = 1) out vec3 gNormal;
-layout (location = 2) out vec3 gAlbedo;
-layout (location = 3) out float gIsCloud;
+layout (location = 2) out vec3 gPosition;
 
 uniform vec3 flat_color;
 uniform sampler2D texture_sampler;
@@ -31,5 +30,4 @@ void main() {
     } else {
         gAlbedo = flat_color;
     }
-    gIsCloud = 0.0F;
 }

@@ -77,6 +77,9 @@ bool tree_renderer::enable(cgv::render::context &ctx) {
 	if (!ref_prog().set_uniform(ctx, "rotation", style.rotation)) {
 		return false;
 	}
+	if (!ref_prog().set_uniform(ctx, "scale", style.scale)) {
+		return false;
+	}
 
 	return true;
 }
@@ -123,6 +126,7 @@ struct tree_render_style_gui_creator : public cgv::gui::gui_creator {
 		auto *b = dynamic_cast<cgv::base::base *>(p);
 		p->add_member_control(b, "Tree Count", style->tree_count);
 		p->add_member_control(b, "Tree Rotation", style->rotation);
+		p->add_member_control(b, "Tree Scale", style->scale);
 		return true;
 	}
 };

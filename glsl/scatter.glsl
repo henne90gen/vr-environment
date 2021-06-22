@@ -33,10 +33,8 @@ vec3 scene_color, // the color of the scene
 vec3 light_dir, // the direction of the light
 vec3 light_intensity// how bright the light is, affects the brightness of the atmosphere
 ) {
-    float planet_radius = 371e3;// the radius of the planet (used to be 6371e3)
-    planet_radius = 6371e3;// the radius of the planet
-    float atmo_radius = 471e3;// the radius of the atmosphere (used to be 6471e3)
-    atmo_radius = 6471e3;// the radius of the atmosphere
+    float planet_radius = 6371e3;// the radius of the planet
+    float atmo_radius = 6471e3;// the radius of the atmosphere
     vec3 planet_position = vec3(0.0, -(planet_radius+100), 0.0);// the position of the planet
 
     vec3 beta_ray = vec3(5.5e-6, 13.0e-6, 22.4e-6);// the amount rayleigh scattering scatters the colors (for earth: causes the blue atmosphere)

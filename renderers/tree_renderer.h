@@ -13,6 +13,7 @@ extern tree_renderer &ref_tree_renderer(cgv::render::context &ctx, int ref_count
 struct tree_render_style : public cgv::render::surface_render_style {
 	int tree_count = 512;
 	float rotation = 0.0F;
+	float scale = 0.1F;
 
 	/// construct with default values
 	tree_render_style() = default;

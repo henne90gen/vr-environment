@@ -168,7 +168,7 @@ void main() {
         // NOTE: simply using the first light as the sun
         // TODO the first light might not be a directional light...
         LightSource light = get_light_source(1);
-        vec3 light_dir = light.position;
+        vec3 light_dir = (get_modelview_matrix() * vec4(light.position, 0.0F)).xyz;
         vec3 lightPower = vec3(30.0);
         color = calculate_scattering_eye(position, get_modelview_matrix(), color, normalize(light_dir), lightPower);
 

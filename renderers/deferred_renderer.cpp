@@ -68,7 +68,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx, int width, int 
 		std::cerr << "Failed to create position texture:" << gPosition.last_error << std::endl;
 		return false;
 	}
-	if (!gBuffer.attach(ctx, gPosition, 0, 0)) {
+	if (!gBuffer.attach(ctx, gPosition, 0, 2)) {
 		std::cerr << "Failed to attach position texture: " << gBuffer.last_error << std::endl;
 		return false;
 	}
@@ -102,7 +102,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx, int width, int 
 		std::cerr << "Failed to create albedo texture:" << gAlbedo.last_error << std::endl;
 		return false;
 	}
-	if (!gBuffer.attach(ctx, gAlbedo, 0, 2)) {
+	if (!gBuffer.attach(ctx, gAlbedo, 0, 0)) {
 		std::cerr << "Failed to attach albedo texture: " << gBuffer.last_error << std::endl;
 		return false;
 	}
@@ -125,6 +125,7 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx, int width, int 
 		return false;
 	}
 
+#if DEPTH_TO_TEXTURE
 	gDepth = cgv::render::texture(           //
 		  "flt32[D](" + ws + "," + hs + ")", //
 		  cgv::render::TF_NEAREST,           //
@@ -143,6 +144,17 @@ bool deferred_renderer::init_g_buffer(cgv::render::context &ctx, int width, int 
 		std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
 		return false;
 	}
+#else
+	gDepth = cgv::render::render_buffer("flt32[D](" + ws + "," + hs + ")");
+	if (!gDepth.create(ctx, width, height)) {
+		std::cerr << "Failed to create depth buffer: " << gDepth.last_error << std::endl;
+		return false;
+	}
+	if (!gBuffer.attach(ctx, gDepth)) {
+		std::cerr << "Failed to attach depth buffer: " << gBuffer.last_error << std::endl;
+		return false;
+	}
+#endif
 
 	if (!gBuffer.is_complete(ctx)) {
 		std::cerr << "Failed to create framebuffer: " << gBuffer.last_error << std::endl;
@@ -205,12 +217,14 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 		return false;
 	}
 
+#if DEPTH_TO_TEXTURE
 	if (!gDepth.enable(ctx, 6)) {
 		return false;
 	}
 	if (!ref_prog().set_uniform(ctx, "gDepth", 6)) {
 		return false;
 	}
+#endif
 
 	const auto &style = get_style<deferred_render_style>();
 	if (!ref_prog().set_uniform(ctx, "render_target", static_cast<int>(style.render_target))) {
@@ -226,12 +240,13 @@ bool deferred_renderer::enable(cgv::render::context &ctx) {
 	return true;
 }
 
-void deferred_renderer::render(cgv::render::context &ctx, int viewport[4], const std::function<void()> &func) {
+void deferred_renderer::render(cgv::render::context &ctx, const int viewport[4], const std::function<void()> &func) {
 	int width = viewport[2];
 	int height = viewport[3];
 	if (gBuffer.get_width() != width || gBuffer.get_height() != height) {
 		if (!init_g_buffer(ctx, width, height)) {
 			std::cerr << "Failed to resize gBuffer" << std::endl;
+			return;
 		}
 	}
 
@@ -277,7 +292,6 @@ void deferred_renderer::render(cgv::render::context &ctx, int viewport[4], const
 		int x = viewport[0];
 		int y = viewport[1];
 		glBlitFramebuffer(0, 0, width, height, x, y, x + width, y + height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_id);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_id);
 	}
 }

@@ -8,9 +8,9 @@ uniform float animation_speed;
 uniform float animation_time;
 uniform float cloud_blend;
 
-layout (location = 0) out vec3 gPosition;
+layout (location = 0) out vec3 gAlbedoSpec;
 layout (location = 1) out vec3 gNormal;
-layout (location = 2) out vec3 gAlbedoSpec;
+layout (location = 2) out vec3 gPosition;
 layout (location = 3) out vec3 gIsCloud;
 
 const mat2 m = mat2(1.6, 1.2, -1.2, 1.6);

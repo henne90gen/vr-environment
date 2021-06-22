@@ -15,9 +15,9 @@ in vec3 normal_fs;
 in vec3 model_position_fs;
 in float normalized_height_fs;
 
-layout (location = 0) out vec3 gPosition;
+layout (location = 0) out vec3 gAlbedoSpec;
 layout (location = 1) out vec3 gNormal;
-layout (location = 2) out vec3 gAlbedoSpec;
+layout (location = 2) out vec3 gPosition;
 layout (location = 3) out vec3 gIsCloud;
 
 uniform bool wireframe;

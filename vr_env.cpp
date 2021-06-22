@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+#define USE_DEFERRED_RENDERED_VIS 0
+
 vr_env::vr_env() { set_name("vr_env"); }
 
 void vr_env::stream_help(std::ostream &os) {
@@ -61,11 +63,27 @@ void vr_env::clear(cgv::render::context &ctx) {
 void vr_env::init_frame(cgv::render::context &ctx) { drawable::init_frame(ctx); }
 
 void vr_env::draw(cgv::render::context &ctx) {
-	scene(ctx);
-	example_visualization(ctx);
+	draw_scene(ctx);
+
+#if !USE_DEFERRED_RENDERED_VIS
+	draw_example_visualization(ctx);
+#endif
+
+#if 0
+	auto num = cgv::base::get_nr_permanently_registered_objects();
+	std::cout << num << std::endl;
+	for (int i = 0; i < num; i++) {
+		auto obj = cgv::base::get_permanently_registered_object(i);
+		auto *env = obj->get_interface<vr_env>();
+		if (env == nullptr) {
+			continue;
+		}
+		env->add_render_command();
+	}
+#endif
 }
 
-void vr_env::scene(cgv::render::context &ctx) {
+void vr_env::draw_scene(cgv::render::context &ctx) {
 	{
 		TIME_SCOPE("scene");
 		GLint vp[4];
@@ -92,13 +110,17 @@ void vr_env::scene(cgv::render::context &ctx) {
 				clouds.set_render_style(clouds_style);
 				clouds.render(ctx);
 			}
+
+#if USE_DEFERRED_RENDERED_VIS
+			draw_example_visualization(ctx);
+#endif
 		});
 	}
 
 	//	get_performance_counter().print();
 }
 
-void vr_env::example_visualization(cgv::render::context &ctx) const {
+void vr_env::draw_example_visualization(cgv::render::context &ctx) const {
 	if (!show_example_visualization) {
 		return;
 	}
@@ -203,7 +225,7 @@ void vr_env::on_set(void *member_ptr) {
 void vr_env::generate_new_seed() {
 	std::random_device rand_dev;
 	std::mt19937 generator(rand_dev());
-	std::uniform_int_distribution<int> distribution(0, 1000000);
+	std::uniform_int_distribution<int> distribution(0, 50000);
 	terrainParams.seed = distribution(generator);
 	post_recreate_gui();
 	post_redraw();

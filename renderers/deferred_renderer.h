@@ -3,6 +3,8 @@
 #include <cgv/render/frame_buffer.h>
 #include <cgv_gl/surface_renderer.h>
 
+#define DEPTH_TO_TEXTURE 0
+
 class deferred_renderer;
 
 //! reference to a singleton spline tube renderer that is shared among drawables
@@ -57,7 +59,11 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	cgv::render::texture gIsCloud;
 	cgv::render::texture ssao_texture;
 	cgv::render::texture blurred_ssao_texture;
+#if DEPTH_TO_TEXTURE
 	cgv::render::texture gDepth;
+#else
+	cgv::render::render_buffer gDepth;
+#endif
 
   protected:
 	/// overload to allow instantiation of deferred_renderer
@@ -72,7 +78,7 @@ class deferred_renderer : public cgv::render::surface_renderer {
 	bool validate_attributes(const cgv::render::context &ctx) const override;
 	bool enable(cgv::render::context &ctx) override;
 	bool disable(cgv::render::context &ctx) override;
-	void render(cgv::render::context &ctx, int viewport[4], const std::function<void()> &func);
+	void render(cgv::render::context &ctx, const int viewport[4], const std::function<void()> &func);
 	/// convenience function to render with default settings
 	void draw(cgv::render::context &ctx, size_t start, size_t count, bool use_strips = false,
 			  bool use_adjacency = false, uint32_t strip_restart_index = -1) override;
