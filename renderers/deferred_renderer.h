@@ -3,7 +3,7 @@
 #include <cgv/render/frame_buffer.h>
 #include <cgv_gl/surface_renderer.h>
 
-#define DEPTH_TO_TEXTURE 0
+#define DEPTH_TO_TEXTURE 1
 
 class deferred_renderer;
 
